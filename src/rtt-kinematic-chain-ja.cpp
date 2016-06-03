@@ -167,5 +167,6 @@ void RTTKinematicChainJa::updateHook() {
 	}
 }
 
-ORO_CREATE_COMPONENT(cogimon::RTTKinematicChainJa)
-
+ORO_CREATE_COMPONENT_LIBRARY()
+//ORO_CREATE_COMPONENT(cogimon::RTTKinematicChainJa)
+ORO_LIST_COMPONENT_TYPE(cogimon::RTTKinematicChainJa)
