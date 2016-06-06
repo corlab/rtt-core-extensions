@@ -54,7 +54,7 @@ include_directories(
     ${RST-RT_INCLUDE_DIRS}
 )
 
-orocos_component(${PROJECT_NAME} src/rtt-kinematic-chain-ja.cpp src/rtt-kinematic-chain-jt.cpp)
+orocos_component(${PROJECT_NAME} src/rtt-kinematic-chain-ja.cpp src/rtt-kinematic-chain-jt.cpp src/rtt-jointaware-taskcontext.cpp)
 set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
 
 target_link_libraries(${PROJECT_NAME}
