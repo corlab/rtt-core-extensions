@@ -64,7 +64,7 @@ public:
     void updateHook();
 
     // operation to configure the ports
-    bool configureUserside(int dimFB, int dimCmdInput);
+    bool configureFBandCMDdimensions(int dimFB, int dimCmdInput);
     bool addPortRobotside(std::string portName, int dim);
 
 protected:

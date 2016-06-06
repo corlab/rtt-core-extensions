@@ -41,11 +41,11 @@ RTTKinematicChainJt::RTTKinematicChainJt(const std::string &name) :
 				false) {
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
-	this->addOperation("configureUserside", &RTTKinematicChainJt::configureUserside, this, ClientThread);
+	this->addOperation("configureFBandCMDdimensions", &RTTKinematicChainJt::configureFBandCMDdimensions, this, ClientThread);
 	this->addOperation("addPortRobotside", &RTTKinematicChainJt::addPortRobotside, this, ClientThread);
 }
 
-bool RTTKinematicChainJt::configureUserside(int dimFB, int dimCmdInput) {
+bool RTTKinematicChainJt::configureFBandCMDdimensions(int dimFB, int dimCmdInput) {
 	this->_feedback_dims = dimFB;
 	this->_command_dims = dimCmdInput;
 	return true;
@@ -78,6 +78,7 @@ bool RTTKinematicChainJt::addPortRobotside(std::string portName, int dim) {
 			new OutputPortContainer<rstrt::dynamics::JointTorques>());
 	tmpCont->port.setName(portName);
 	tmpCont->port.setDataSample(tmpJa);
+	tmpCont->port.doc("Output for JointTorque-cmds to command a particular part of the kinematic chain.");
 	tmpCont->data = tmpJa;
 
 	// add port to context!
@@ -97,15 +98,17 @@ bool RTTKinematicChainJt::configureHook() {
 		tmpCmd.torques.setZero();
 
 		_feedback_port.data.torques = tmpFb.torques;
-		_feedback_port.port.setName("feedback_out");
-		// TODO add doc
+		_feedback_port.port.setName("feedback");
 		_feedback_port.port.setDataSample(tmpFb);
+		_feedback_port.port.doc("Output for feedback from the robot side.");
 
 		_command_port.data.torques = tmpCmd.torques;
-		_command_port.port.setName("command_in");
+		_command_port.port.setName("command");
+		_command_port.port.doc("Input for JointTorque-cmds to command a particular kinematic chain.");
 
 		_robot_feedback_port.data.torques = tmpFb.torques;
-		_robot_feedback_port.port.setName("robot_fb_in");
+		_robot_feedback_port.port.setName("robot_feedback");
+		_robot_feedback_port.port.doc("Input for feedback from the Robot to the User.");
 
 		// add ports to context!
 		this->ports()->addPort(_feedback_port.port);

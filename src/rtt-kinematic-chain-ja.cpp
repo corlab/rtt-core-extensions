@@ -41,11 +41,11 @@ RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
 				false) {
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
-	this->addOperation("configureUserside", &RTTKinematicChainJa::configureUserside, this, ClientThread);
+	this->addOperation("configureFBandCMDdimensions", &RTTKinematicChainJa::configureFBandCMDdimensions, this, ClientThread);
 	this->addOperation("addPortRobotside", &RTTKinematicChainJa::addPortRobotside, this, ClientThread);
 }
 
-bool RTTKinematicChainJa::configureUserside(int dimFB, int dimCmdInput) {
+bool RTTKinematicChainJa::configureFBandCMDdimensions(int dimFB, int dimCmdInput) {
 	this->_feedback_dims = dimFB;
 	this->_command_dims = dimCmdInput;
 	return true;
