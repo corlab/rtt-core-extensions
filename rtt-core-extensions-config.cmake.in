@@ -1,0 +1,34 @@
+get_filename_component(@PROJECT_NAME_UPPER@_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+set(@PROJECT_NAME_UPPER@_INCLUDE_DIRS "${@PROJECT_NAME_UPPER@_CONFIG_DIR}/../../include/@CMAKE_PROJECT_NAME@@INSTALL_SUFFIX@/")
+
+set(@PROJECT_NAME_UPPER@_LIBRARY_DIRS "${@PROJECT_NAME_UPPER@_CONFIG_DIR}/../../lib")
+
+set(@PROJECT_NAME_UPPER@_LIBRARIES @LIBRARY_NAME@)
+
+# Eigen
+
+find_package(Eigen3)
+
+add_definitions(${EIGEN3_DEFINITIONS})
+include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+
+# Orocos
+
+find_package(OROCOS-RTT REQUIRED COMPONENTS rtt-scripting rtt-typekit)
+if (NOT OROCOS-RTT_FOUND)
+  message (FATAL_ERROR "\nCould not find Orocos-RTT. Please use the shell command\n 'source orocos_toolchain/env.sh' and then run cmake again.")
+endif()
+
+include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake )
+include_directories(${USE_OROCOS_INCLUDE_DIRS})
+
+# Rst-rt
+
+find_package(RST-RT REQUIRED)
+message(STATUS "RST-RT version: ${RST-RT_VERSION}")
+include_directories(BEFORE SYSTEM ${RST-RT_INCLUDE_DIRS})
+add_definitions(${RST-RT_CFLAGS})
+link_directories(${RST-RT_LIBRARY_DIR} ${RST-RT_LIBRARY_DIRS})
+
+# Boost TODO

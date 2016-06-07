@@ -30,6 +30,20 @@ set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+string(TOUPPER "${CMAKE_PROJECT_NAME}" PROJECT_NAME_UPPER)
+
+set(${PROJECT_NAME_UPPER}_VERSION_MAJOR 0)
+set(${PROJECT_NAME_UPPER}_VERSION_MINOR 1)
+set(${PROJECT_NAME_UPPER}_VERSION "${${PROJECT_NAME_UPPER}_VERSION_MAJOR}.${${PROJECT_NAME_UPPER}_VERSION_MINOR}")
+
+set(INSTALL_SUFFIX "${${PROJECT_NAME_UPPER}_VERSION}")
+
+set(LIBRARY_NAME "${CMAKE_PROJECT_NAME}${INSTALL_SUFFIX}")
+
+set(COMPONENTS_LIB_NAME "${CMAKE_PROJECT_NAME}-components")
+
+# dependencies
+
 find_package(OROCOS-RTT REQUIRED COMPONENTS rtt-scripting rtt-typekit)
 if (NOT OROCOS-RTT_FOUND)
   message (FATAL_ERROR "\nCould not find Orocos-RTT. Please use the shell command\n 'source orocos_toolchain/env.sh' and then run cmake again.")
@@ -54,13 +68,29 @@ include_directories(
     ${RST-RT_INCLUDE_DIRS}
 )
 
-orocos_component(${PROJECT_NAME} src/rtt-kinematic-chain-ja.cpp src/rtt-kinematic-chain-jt.cpp src/rtt-jointaware-taskcontext.cpp)
-set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
+# Sub-directories
 
-target_link_libraries(${PROJECT_NAME}
-   ${USE_OROCOS_LIBRARIES}
-   ${OROCOS-RTT_LIBRARIES}
-   ${Boost_LIBRARIES}
-   ${RST-RT_LIBRARIES}
+add_subdirectory(src)
+
+# Configuration installation
+
+configure_file("${CMAKE_PROJECT_NAME}-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
+    @ONLY)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
+    DESTINATION "share/${CMAKE_PROJECT_NAME}-${INSTALL_SUFFIX}")
+
+# Build orocos components
+
+orocos_component(${COMPONENTS_LIB_NAME} src/rtt-kinematic-chain-ja.cpp src/rtt-kinematic-chain-jt.cpp)
+set_property(TARGET ${COMPONENTS_LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
+
+target_link_libraries(${COMPONENTS_LIB_NAME}
+    ${USE_OROCOS_LIBRARIES}
+    ${OROCOS-RTT_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${RST-RT_LIBRARIES}
+    ${LIBRARY_NAME}
 )
 orocos_generate_package(INCLUDE_DIRS include)

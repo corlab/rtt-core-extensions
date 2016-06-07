@@ -51,7 +51,7 @@
 // RST-RT includes
 #include <rst-rt/kinematics/JointAngles.hpp>
 
-#include "rtt-jointaware-taskcontext.hpp"
+#include "rtt-core-extensions/rtt-jointaware-taskcontext.hpp"
 
 #include <port_container.hpp>
 
