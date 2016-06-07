@@ -58,7 +58,7 @@ bool RTTJointAwareTaskContext::retrieveJointMappings() {
 		std::map<std::string, int> mapping;
 		if (getJointNameMappingFromPort(*ports_iter, mapping)) {
 			// convert the mapping the way you want, using the following macro: joint_names_mapping_lookup
-			jointNameMappingHook((*ports_iter)->getName(), mapping);
+			retrieveJointMappingsHook((*ports_iter)->getName(), mapping);
 		}
 	}
 	is_joint_mapping_loaded = true;

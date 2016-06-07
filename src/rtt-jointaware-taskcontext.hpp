@@ -37,14 +37,7 @@ class RTTJointAwareTaskContext: public RTT::TaskContext {
 public:
 	RTTJointAwareTaskContext(std::string const& name);
 
-	bool retrieveJointMappings();
-
 	bool start();
-
-	/**
-	 * Use this method to check if the joint mapping is fully loaded by now.
-	 */
-	bool isJointMappingLoaded();
 
 	/**
 	 * Implement this function in your own class and
@@ -53,12 +46,20 @@ public:
 	 * port_name	name of the associated output port (of this component)
 	 * mapping		mapping containing the joint names and associated indexes
 	 */
-	virtual void jointNameMappingHook(std::string const& port_name,
-			std::map<std::string, int> const& mapping);
+	virtual void retrieveJointMappingsHook(std::string const& port_name,
+			std::map<std::string, int> const& mapping) = 0;
+
 
 protected:
+	bool retrieveJointMappings();
+
 	bool getJointNameMappingFromPort(RTT::base::PortInterface* port,
 			std::map<std::string, int>& mapping);
+
+	/**
+	 * Use this method to check if the joint mapping is fully loaded by now.
+	 */
+	bool isJointMappingLoaded();
 
 	bool is_joint_mapping_loaded;
 };
