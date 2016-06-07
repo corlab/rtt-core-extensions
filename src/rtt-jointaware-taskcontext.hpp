@@ -37,7 +37,7 @@ class RTTJointAwareTaskContext: public RTT::TaskContext {
 public:
 	RTTJointAwareTaskContext(std::string const& name);
 
-	bool start();
+	bool startHook();
 
 	/**
 	 * Implement this function in your own class and
@@ -48,6 +48,11 @@ public:
 	 */
 	virtual void retrieveJointMappingsHook(std::string const& port_name,
 			std::map<std::string, int> const& mapping) = 0;
+
+	/**
+	 * Sometimes further processing is needed after the mappings are received.
+	 */
+	virtual void processJointMappingsHook() = 0;
 
 protected:
 	/**

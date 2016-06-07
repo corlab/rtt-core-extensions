@@ -41,12 +41,12 @@ RTTJointAwareTaskContext::RTTJointAwareTaskContext(const std::string &name) :
 			"Retrieves the joint mappings from the output ports. This operation needs to be called before start() can be executed.");
 
 	this->addOperation("retrieveJointMappingsSelectively",
-				&RTTJointAwareTaskContext::retrieveJointMappingsSelectively, this,
-				ClientThread).doc(
-				"Retrieves the joint mappings from the output ports. This operation needs to be called before start() can be executed.");
+			&RTTJointAwareTaskContext::retrieveJointMappingsSelectively, this,
+			ClientThread).doc(
+			"Retrieves the joint mappings from the output ports. This operation needs to be called before start() can be executed.");
 }
 
-bool RTTJointAwareTaskContext::start() {
+bool RTTJointAwareTaskContext::startHook() {
 	if (!is_joint_mapping_loaded) {
 		RTT::log(RTT::Warning)
 				<< "this.retrieveJointMappings() needs to be called before this component can be started!"
@@ -74,15 +74,22 @@ bool RTTJointAwareTaskContext::retrieveJointMappingsSelectively(
 bool RTTJointAwareTaskContext::retrieveJointMappings() {
 	std::vector<base::PortInterface*> ports = this->ports()->getPorts();
 	std::vector<base::PortInterface*>::iterator ports_iter;
+	bool not_even_one = true;
 	for (ports_iter = ports.begin(); ports_iter != ports.end(); ++ports_iter) {
 		std::map<std::string, int> mapping;
 		if (getJointNameMappingFromPort(*ports_iter, mapping)) {
 			// convert the mapping the way you want, using the following macro: joint_names_mapping_lookup
 			retrieveJointMappingsHook((*ports_iter)->getName(), mapping);
+			if (not_even_one) {
+				not_even_one = false;
+			}
 		}
 	}
-	is_joint_mapping_loaded = true;
-	return true;
+	is_joint_mapping_loaded = !not_even_one;
+	if (is_joint_mapping_loaded) {
+		processJointMappingsHook();
+	}
+	return !not_even_one;
 }
 
 bool RTTJointAwareTaskContext::isJointMappingLoaded() {
@@ -94,7 +101,7 @@ bool RTTJointAwareTaskContext::getJointNameMappingFromPort(
 	// get remote task context via the output port
 	// TODO validate the current channel, there could be more connections available!
 	if (!port->connected()) {
-		RTT::log(RTT::Warning) << "Port: " << port->getName()
+		RTT::log(RTT::Info) << "Port: " << port->getName()
 				<< " needs to be connected, in order to retrieve the joint mapping!"
 				<< RTT::endlog();
 		return false;
@@ -107,24 +114,43 @@ bool RTTJointAwareTaskContext::getJointNameMappingFromPort(
 	std::string remoteInputPortname =
 			port->getManager()->getCurrentChannel()->getOutputEndPoint()->getPort()->getName();
 
+//	RTT::log(RTT::Error) << "port->getName(): " << port->getName()
+//			<< ", remoteTaskContext->getName(): "
+//			<< remoteTaskContext->getName()
+//			<< ", remoteInputPortname: "
+//			<< remoteInputPortname
+//			<< RTT::endlog();
+
+	// Handle the selection issue in a more intelligent way in the future! TODO
+	if (remoteTaskContext->getName() == this->getName()) {
+		return false;
+	}
+
 	// check if operation is available
 	Service::shared_ptr remoteServicePtr = remoteTaskContext->provides();
 	if (remoteServicePtr) {
 		if (remoteServicePtr->hasService("joint_info")) {
-			if (remoteServicePtr->hasOperation("getJointMappingForPort")) {
+			if (remoteServicePtr->getService("joint_info")->hasOperation(
+					"getJointMappingForPort")) {
 
 				OperationCaller<std::map<std::string, int>(std::string)> opCaller =
-						remoteServicePtr->getOperation(
+						remoteServicePtr->getService("joint_info")->getOperation(
 								"getJointMappingForPort");
 				if (opCaller.ready()) {
 					mapping = opCaller(remoteInputPortname);
 					return true;
-				} else {
-					// throw exception TODO
-				}
-
-			}
-		}
+				}	// else {
+//					RTT::log(RTT::Error) << "Operation is not read?! - Should not happen!" << RTT::endlog();
+//				}
+			}	// else {
+//				RTT::log(RTT::Error) << "Remote TaskContext has no operation called getJointMappingForPort ?!" << RTT::endlog();
+//			}
+		}	// else {
+//			RTT::log(RTT::Error) << "Remote TaskContext has no service: joint_info?!" << RTT::endlog();
+//		}
+	} else {
+		RTT::log(RTT::Error) << "Remote TaskContext could not be found?!"
+				<< RTT::endlog();
 	}
 	return false;
 }

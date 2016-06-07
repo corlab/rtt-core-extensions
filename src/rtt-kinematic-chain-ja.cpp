@@ -37,15 +37,72 @@ using namespace RTT::os;
 using namespace Eigen;
 
 RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
-		TaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
+		RTTJointAwareTaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
 				false) {
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
-	this->addOperation("configureFBandCMDdimensions", &RTTKinematicChainJa::configureFBandCMDdimensions, this, ClientThread);
-	this->addOperation("addPortRobotside", &RTTKinematicChainJa::addPortRobotside, this, ClientThread);
+	this->addOperation("configureFBandCMDdimensions",
+			&RTTKinematicChainJa::configureFBandCMDdimensions, this,
+			ClientThread);
+	this->addOperation("addPortRobotside",
+			&RTTKinematicChainJa::addPortRobotside, this, ClientThread);
+
+	this->provides("joint_info")->addOperation("getJointMappingForPort",
+			&RTTKinematicChainJa::getJointMappingForPort, this,
+			RTT::ClientThread);
 }
 
-bool RTTKinematicChainJa::configureFBandCMDdimensions(int dimFB, int dimCmdInput) {
+std::map<std::string, int> RTTKinematicChainJa::getJointMappingForPort(
+		std::string portName) {
+
+	std::map<std::string, int> result;
+	if (is_joint_mapping_loaded) {
+		for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+			if (_robot_chain_ports[i]->port.getName() == portName) {
+				result = _robot_chain_ports[i]->joint_name_mapping;
+				break;
+			}
+		}
+	} else {
+		RTT::log(RTT::Error)
+				<< "getJointMappingForPort is called before this component had a chance to get the mapping itself."
+				<< RTT::endlog();
+	}
+	return result;
+}
+
+void RTTKinematicChainJa::retrieveJointMappingsHook(
+		std::string const& port_name,
+		std::map<std::string, int> const& mapping) {
+	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+		if (_robot_chain_ports[i]->port.getName() == port_name) {
+			_robot_chain_ports[i]->joint_name_mapping = mapping;
+			break;
+		}
+	}
+}
+
+void RTTKinematicChainJa::processJointMappingsHook() {
+	// further processing of mappings is needed
+	unsigned floatingIndex = 0;
+	std::map<std::string, int>::iterator iter;
+	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+		for (iter = _robot_chain_ports[i]->joint_name_mapping.begin();
+				iter != _robot_chain_ports[i]->joint_name_mapping.end();
+				++iter) {
+			_command_port.joint_name_mapping[iter->first] = floatingIndex;
+			floatingIndex++;
+		}
+	}
+//	for (iter = _command_port.joint_name_mapping.begin();
+//			iter != _command_port.joint_name_mapping.end(); ++iter) {
+//		RTT::log(RTT::Error) << "Final: " << iter->first << " : "
+//				<< iter->second << RTT::endlog();
+//	}
+}
+
+bool RTTKinematicChainJa::configureFBandCMDdimensions(int dimFB,
+		int dimCmdInput) {
 	this->_feedback_dims = dimFB;
 	this->_command_dims = dimCmdInput;
 	return true;
@@ -88,6 +145,8 @@ bool RTTKinematicChainJa::addPortRobotside(std::string portName, int dim) {
 }
 
 bool RTTKinematicChainJa::configureHook() {
+	// TODO perhaps needed to call super.configureHook() ?
+
 	if ((_robot_chain_ports.size() > 0) && (_feedback_dims > -1)
 			&& (_command_dims > -1)) {
 		// create dummy data
@@ -131,10 +190,10 @@ void RTTKinematicChainJa::updateHook() {
 						&& _command_port.flowstatus == RTT::NewData)) {
 
 			// iterate through output ports
-			int floatingIndex = 0;
-			for (int i = 0; i < _robot_chain_ports.size(); i++) {
-				for (int j = 0; j < _robot_chain_ports[i]->data.angles.rows();
-						j++) {
+			unsigned int floatingIndex = 0;
+			for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+				for (unsigned int j = 0;
+						j < _robot_chain_ports[i]->data.angles.rows(); j++) {
 					_robot_chain_ports[i]->data.angles(j) =
 							_command_port.data.angles(j + floatingIndex);
 
@@ -147,7 +206,7 @@ void RTTKinematicChainJa::updateHook() {
 				}
 				floatingIndex += _robot_chain_ports[i]->data.angles.rows();
 			}
-			for (int i = 0; i < _robot_chain_ports.size(); i++) {
+			for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
 				if (_robot_chain_ports[i]->port.connected()) {
 					_robot_chain_ports[i]->port.write(
 							_robot_chain_ports[i]->data);
