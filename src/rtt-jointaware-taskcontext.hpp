@@ -49,10 +49,25 @@ public:
 	virtual void retrieveJointMappingsHook(std::string const& port_name,
 			std::map<std::string, int> const& mapping) = 0;
 
-
 protected:
+	/**
+	 * Tries to retrieve joint mappings for all ports.
+	 * This doesn't always makes sense... If you exactly know which ports can be used
+	 * to retrieve the joint name mapping, then use retrieveJointMappings(RTT::base::PortInterface* port).
+	 *
+	 * To be called from the outside or at the end of the configureHook,
+	 * whenever the ports are connected to retrieve the joint mapping from.
+	 */
 	bool retrieveJointMappings();
 
+	/**
+	 * Use this to retrieve the joint mapping in a more selective way.
+	 */
+	bool retrieveJointMappingsSelectively(const std::string& portName);
+
+	/**
+	 * Actually retrieves the joint mapping over the port connection to another component.
+	 */
 	bool getJointNameMappingFromPort(RTT::base::PortInterface* port,
 			std::map<std::string, int>& mapping);
 

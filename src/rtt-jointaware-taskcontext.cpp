@@ -39,6 +39,11 @@ RTTJointAwareTaskContext::RTTJointAwareTaskContext(const std::string &name) :
 			&RTTJointAwareTaskContext::retrieveJointMappings, this,
 			ClientThread).doc(
 			"Retrieves the joint mappings from the output ports. This operation needs to be called before start() can be executed.");
+
+	this->addOperation("retrieveJointMappingsSelectively",
+				&RTTJointAwareTaskContext::retrieveJointMappingsSelectively, this,
+				ClientThread).doc(
+				"Retrieves the joint mappings from the output ports. This operation needs to be called before start() can be executed.");
 }
 
 bool RTTJointAwareTaskContext::start() {
@@ -46,6 +51,21 @@ bool RTTJointAwareTaskContext::start() {
 		RTT::log(RTT::Warning)
 				<< "this.retrieveJointMappings() needs to be called before this component can be started!"
 				<< RTT::endlog();
+		return false;
+	}
+	return true;
+}
+
+bool RTTJointAwareTaskContext::retrieveJointMappingsSelectively(
+		const std::string& portName) {
+	base::PortInterface* port = this->getPort(portName);
+	if (port) {
+		std::map<std::string, int> mapping;
+		if (getJointNameMappingFromPort(port, mapping)) {
+			// convert the mapping the way you want, using the following macro: joint_names_mapping_lookup
+			retrieveJointMappingsHook(portName, mapping);
+		}
+	} else {
 		return false;
 	}
 	return true;
