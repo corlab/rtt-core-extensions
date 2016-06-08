@@ -146,8 +146,11 @@ bool RTTKinematicChainJa::configureHook() {
 	if ((_robot_chain_ports.size() > 0) && (_feedback_dims > -1)
 			&& (_command_dims > -1)) {
 		// create dummy data
-		rstrt::kinematics::JointAngles tmpFb(_feedback_dims);
+		rstrt::robot::JointState tmpFb(_feedback_dims);
 		tmpFb.angles.setZero();
+		tmpFb.velocities.setZero();
+		tmpFb.torques.setZero();
+
 		rstrt::kinematics::JointAngles tmpCmd(_command_dims);
 		tmpCmd.angles.setZero();
 

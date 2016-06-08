@@ -50,6 +50,7 @@
 
 // RST-RT includes
 #include <rst-rt/kinematics/JointAngles.hpp>
+#include <rst-rt/robot/JointState.hpp>
 
 #include "rtt-core-extensions/rtt-jointaware-taskcontext.hpp"
 
@@ -91,10 +92,10 @@ private:
 			boost::shared_ptr<
 					OutputPortContainer<rstrt::kinematics::JointAngles> > > _robot_chain_ports;
 	// TODO change _feedback_port to normal OutputPort!
-	OutputPortContainer<rstrt::kinematics::JointAngles> _feedback_port;
+	OutputPortContainer<rstrt::robot::JointState> _feedback_port;
 
 	InputPortContainer<rstrt::kinematics::JointAngles> _command_port;
-	InputPortContainer<rstrt::kinematics::JointAngles> _robot_feedback_port;
+	InputPortContainer<rstrt::robot::JointState> _robot_feedback_port;
 
 	bool executeContinuously;
 
