@@ -54,14 +54,10 @@ RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
 
 std::map<std::string, int> RTTKinematicChainJa::getJointMappingForPort(
 		std::string portName) {
-
 	std::map<std::string, int> result;
 	if (is_joint_mapping_loaded) {
-		for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
-			if (_robot_chain_ports[i]->port.getName() == portName) {
-				result = _robot_chain_ports[i]->joint_name_mapping;
-				break;
-			}
+		if (_command_port.port.getName() == portName) {
+			result = _command_port.joint_name_mapping;
 		}
 	} else {
 		RTT::log(RTT::Error)

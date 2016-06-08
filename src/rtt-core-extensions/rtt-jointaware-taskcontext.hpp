@@ -31,6 +31,8 @@
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
 
+#define joint_names_mapping_lookup(memberDict, remoteDict, jointName) memberDict.jointName = remoteDict["jointName"]
+
 namespace cogimon {
 
 class RTTJointAwareTaskContext: public RTT::TaskContext {

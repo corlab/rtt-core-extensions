@@ -31,8 +31,6 @@
 using namespace cogimon;
 using namespace RTT;
 
-#define joint_names_mapping_lookup(memberDict, remoteDict, jointName) memberDict.jointName = remoteDict["jointName"]
-
 RTTJointAwareTaskContext::RTTJointAwareTaskContext(const std::string &name) :
 		TaskContext(name), is_joint_mapping_loaded(false) {
 	this->addOperation("retrieveJointMappings",
