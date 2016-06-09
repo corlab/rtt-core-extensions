@@ -37,15 +37,68 @@ using namespace RTT::os;
 using namespace Eigen;
 
 RTTKinematicChainJt::RTTKinematicChainJt(const std::string &name) :
-		TaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
+		RTTJointAwareTaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
 				false) {
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
-	this->addOperation("configureFBandCMDdimensions", &RTTKinematicChainJt::configureFBandCMDdimensions, this, ClientThread);
-	this->addOperation("addPortRobotside", &RTTKinematicChainJt::addPortRobotside, this, ClientThread);
+	this->addOperation("configureFBandCMDdimensions",
+			&RTTKinematicChainJt::configureFBandCMDdimensions, this,
+			ClientThread);
+	this->addOperation("addPortRobotside",
+			&RTTKinematicChainJt::addPortRobotside, this, ClientThread);
+
+	this->provides("joint_info")->addOperation("getJointMappingForPort",
+			&RTTKinematicChainJt::getJointMappingForPort, this,
+			RTT::ClientThread);
 }
 
-bool RTTKinematicChainJt::configureFBandCMDdimensions(int dimFB, int dimCmdInput) {
+std::map<std::string, int> RTTKinematicChainJt::getJointMappingForPort(
+		std::string portName) {
+	std::map<std::string, int> result;
+	if (is_joint_mapping_loaded) {
+		if (_command_port.port.getName() == portName) {
+			result = _command_port.joint_name_mapping;
+		}
+	} else {
+		RTT::log(RTT::Error)
+				<< "getJointMappingForPort is called before this component had a chance to get the mapping itself."
+				<< RTT::endlog();
+	}
+	return result;
+}
+
+void RTTKinematicChainJt::retrieveJointMappingsHook(
+		std::string const& port_name,
+		std::map<std::string, int> const& mapping) {
+	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+		if (_robot_chain_ports[i]->port.getName() == port_name) {
+			_robot_chain_ports[i]->joint_name_mapping = mapping;
+			break;
+		}
+	}
+}
+
+void RTTKinematicChainJt::processJointMappingsHook() {
+	// further processing of mappings is needed
+	unsigned floatingIndex = 0;
+	std::map<std::string, int>::iterator iter;
+	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+		for (iter = _robot_chain_ports[i]->joint_name_mapping.begin();
+				iter != _robot_chain_ports[i]->joint_name_mapping.end();
+				++iter) {
+			_command_port.joint_name_mapping[iter->first] = floatingIndex;
+			floatingIndex++;
+		}
+	}
+//	for (iter = _command_port.joint_name_mapping.begin();
+//			iter != _command_port.joint_name_mapping.end(); ++iter) {
+//		RTT::log(RTT::Error) << "Final: " << iter->first << " : "
+//				<< iter->second << RTT::endlog();
+//	}
+}
+
+bool RTTKinematicChainJt::configureFBandCMDdimensions(int dimFB,
+		int dimCmdInput) {
 	this->_feedback_dims = dimFB;
 	this->_command_dims = dimCmdInput;
 	return true;
@@ -71,15 +124,14 @@ bool RTTKinematicChainJt::addPortRobotside(std::string portName, int dim) {
 		return false;
 	}
 
-	rstrt::dynamics::JointTorques tmpJa(dim);
-	tmpJa.torques.setZero();
+	rstrt::dynamics::JointTorques tmpJt(dim);
+	tmpJt.torques.setZero();
 
 	boost::shared_ptr<OutputPortContainer<rstrt::dynamics::JointTorques> > tmpCont(
 			new OutputPortContainer<rstrt::dynamics::JointTorques>());
 	tmpCont->port.setName(portName);
-	tmpCont->port.setDataSample(tmpJa);
-	tmpCont->port.doc("Output for JointTorque-cmds to command a particular part of the kinematic chain.");
-	tmpCont->data = tmpJa;
+	tmpCont->port.setDataSample(tmpJt);
+	tmpCont->data = tmpJt;
 
 	// add port to context!
 	this->ports()->addPort(tmpCont->port);
@@ -89,26 +141,29 @@ bool RTTKinematicChainJt::addPortRobotside(std::string portName, int dim) {
 }
 
 bool RTTKinematicChainJt::configureHook() {
+	// TODO perhaps needed to call super.configureHook() ?
+
 	if ((_robot_chain_ports.size() > 0) && (_feedback_dims > -1)
 			&& (_command_dims > -1)) {
 		// create dummy data
-		rstrt::dynamics::JointTorques tmpFb(_feedback_dims);
+		rstrt::robot::JointState tmpFb(_feedback_dims);
 		tmpFb.torques.setZero();
+		tmpFb.velocities.setZero();
+		tmpFb.torques.setZero();
+
 		rstrt::dynamics::JointTorques tmpCmd(_command_dims);
 		tmpCmd.torques.setZero();
 
 		_feedback_port.data.torques = tmpFb.torques;
-		_feedback_port.port.setName("feedback");
+		_feedback_port.port.setName("feedback_out");
+		// TODO add doc
 		_feedback_port.port.setDataSample(tmpFb);
-		_feedback_port.port.doc("Output for feedback from the robot side.");
 
 		_command_port.data.torques = tmpCmd.torques;
-		_command_port.port.setName("command");
-		_command_port.port.doc("Input for JointTorque-cmds to command a particular kinematic chain.");
+		_command_port.port.setName("command_in");
 
 		_robot_feedback_port.data.torques = tmpFb.torques;
-		_robot_feedback_port.port.setName("robot_feedback");
-		_robot_feedback_port.port.doc("Input for feedback from the Robot to the User.");
+		_robot_feedback_port.port.setName("robot_fb_in");
 
 		// add ports to context!
 		this->ports()->addPort(_feedback_port.port);
@@ -134,10 +189,10 @@ void RTTKinematicChainJt::updateHook() {
 						&& _command_port.flowstatus == RTT::NewData)) {
 
 			// iterate through output ports
-			int floatingIndex = 0;
-			for (int i = 0; i < _robot_chain_ports.size(); i++) {
-				for (int j = 0; j < _robot_chain_ports[i]->data.torques.rows();
-						j++) {
+			unsigned int floatingIndex = 0;
+			for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+				for (unsigned int j = 0;
+						j < _robot_chain_ports[i]->data.torques.rows(); j++) {
 					_robot_chain_ports[i]->data.torques(j) =
 							_command_port.data.torques(j + floatingIndex);
 
@@ -150,7 +205,7 @@ void RTTKinematicChainJt::updateHook() {
 				}
 				floatingIndex += _robot_chain_ports[i]->data.torques.rows();
 			}
-			for (int i = 0; i < _robot_chain_ports.size(); i++) {
+			for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
 				if (_robot_chain_ports[i]->port.connected()) {
 					_robot_chain_ports[i]->port.write(
 							_robot_chain_ports[i]->data);

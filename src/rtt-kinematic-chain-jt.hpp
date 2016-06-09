@@ -50,36 +50,54 @@
 
 // RST-RT includes
 #include <rst-rt/dynamics/JointTorques.hpp>
+#include <rst-rt/robot/JointState.hpp>
+
+#include "rtt-core-extensions/rtt-jointaware-taskcontext.hpp"
 
 #include <port_container.hpp>
 
 namespace cogimon {
 
-class RTTKinematicChainJt: public RTT::TaskContext {
+class RTTKinematicChainJt: public RTTJointAwareTaskContext {
 public:
 	RTTKinematicChainJt(std::string const& name);
-    virtual ~RTTKinematicChainJt() {}
+	virtual ~RTTKinematicChainJt() {
+	}
 
-    bool configureHook();
-    void updateHook();
+	bool configureHook();
+	void updateHook();
 
-    // operation to configure the ports
-    bool configureFBandCMDdimensions(int dimFB, int dimCmdInput);
-    bool addPortRobotside(std::string portName, int dim);
+	// operation to configure the ports
+	bool configureFBandCMDdimensions(int dimFB, int dimCmdInput);
+	bool addPortRobotside(std::string portName, int dim);
+
+	void retrieveJointMappingsHook(std::string const& port_name,
+			std::map<std::string, int> const& mapping);
+
+	void processJointMappingsHook();
+
+	/**
+	 * Provides the joint name to index mapping for other components to retrieve.
+	 * If there isn't such an port (portName) existing, or used in an kinematic chain,
+	 * the call will return an empty map. Otherwise it will contain the mapping.
+	 */
+	std::map<std::string, int> getJointMappingForPort(std::string portName);
 
 protected:
 
 private:
-    int _feedback_dims;
-    int _command_dims;
-    std::vector<boost::shared_ptr<OutputPortContainer<rstrt::dynamics::JointTorques> > > _robot_chain_ports;
-    // TODO change _feedback_port to normal OutputPort!
-    OutputPortContainer<rstrt::dynamics::JointTorques> _feedback_port;
+	int _feedback_dims;
+	int _command_dims;
+	std::vector<
+			boost::shared_ptr<
+					OutputPortContainer<rstrt::dynamics::JointTorques> > > _robot_chain_ports;
+	// TODO change _feedback_port to normal OutputPort!
+	OutputPortContainer<rstrt::robot::JointState> _feedback_port;
 
-    InputPortContainer<rstrt::dynamics::JointTorques> _command_port;
-    InputPortContainer<rstrt::dynamics::JointTorques> _robot_feedback_port;
+	InputPortContainer<rstrt::dynamics::JointTorques> _command_port;
+	InputPortContainer<rstrt::robot::JointState> _robot_feedback_port;
 
-    bool executeContinuously;
+	bool executeContinuously;
 
 };
 
