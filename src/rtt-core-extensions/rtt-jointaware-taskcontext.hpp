@@ -83,6 +83,11 @@ protected:
 	 */
 	bool isJointMappingLoaded();
 
+	/**
+	 * Gets the remote TaskContext through a connected port.
+	 */
+	TaskContext* getTaskContextFromPort(RTT::base::PortInterface* port);
+
 	bool is_joint_mapping_loaded;
 };
 

@@ -152,3 +152,15 @@ bool RTTJointAwareTaskContext::getJointNameMappingFromPort(
 	}
 	return false;
 }
+
+TaskContext* RTTJointAwareTaskContext::getTaskContextFromPort(
+		RTT::base::PortInterface* port) {
+	if (!port->connected()) {
+		RTT::log(RTT::Info) << "Port: " << port->getName()
+				<< " needs to be connected, in order to retrieve the joint mapping!"
+				<< RTT::endlog();
+		return 0;
+	}
+
+	return port->getManager()->getCurrentChannel()->getOutputEndPoint()->getPort()->getInterface()->getOwner();
+}

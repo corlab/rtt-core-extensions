@@ -41,11 +41,15 @@ RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
 				false) {
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
-	this->addOperation("configureFBandCMDdimensions",
-			&RTTKinematicChainJa::configureFBandCMDdimensions, this,
-			ClientThread);
+
 	this->addOperation("addPortRobotside",
 			&RTTKinematicChainJa::addPortRobotside, this, ClientThread);
+
+	this->addOperation("addPortRobotFBside",
+			&RTTKinematicChainJa::addPortRobotFBside, this, ClientThread);
+
+	this->addOperation("setChainandCtrlName",
+			&RTTKinematicChainJa::setChainandCtrlName, this, ClientThread);
 
 	this->provides("joint_info")->addOperation("getJointMappingForPort",
 			&RTTKinematicChainJa::getJointMappingForPort, this,
@@ -90,42 +94,46 @@ void RTTKinematicChainJa::processJointMappingsHook() {
 			floatingIndex++;
 		}
 	}
-//	for (iter = _command_port.joint_name_mapping.begin();
-//			iter != _command_port.joint_name_mapping.end(); ++iter) {
-//		RTT::log(RTT::Error) << "Final: " << iter->first << " : "
-//				<< iter->second << RTT::endlog();
-//	}
+	if (!connectFunctionCallHandler()) {
+		RTT::log(RTT::Error)
+				<< "Could not connect to setControlModes IF. Hence I won't be able to to change the ctrl mode automatically."
+				<< RTT::endlog();
+	}
 }
 
-bool RTTKinematicChainJa::configureFBandCMDdimensions(int dimFB,
-		int dimCmdInput) {
-	this->_feedback_dims = dimFB;
-	this->_command_dims = dimCmdInput;
+bool RTTKinematicChainJa::addPortRobotFBside(std::string portName, int dim) {
+	rstrt::robot::JointState tmpJa(dim);
+	tmpJa.angles.fill(0);
+	tmpJa.velocities.fill(0);
+	tmpJa.torques.fill(0);
+
+	boost::shared_ptr<InputPortContainer<rstrt::robot::JointState> > tmpCont(
+			new InputPortContainer<rstrt::robot::JointState>());
+	tmpCont->port.setName(portName);
+	tmpCont->data = tmpJa;
+
+	// add port to context!
+	this->ports()->addPort(tmpCont->port);
+
+	_robot_feedback_ports.push_back(tmpCont);
+
+	_feedback_dims = 0;
+	for (int i = 0; i < _robot_feedback_ports.size(); i++) {
+		_feedback_dims += _robot_feedback_ports[i]->data.angles.rows();
+	}
+
 	return true;
 }
 
-bool RTTKinematicChainJa::addPortRobotside(std::string portName, int dim) {
-	if ((_feedback_dims == -1) || (_command_dims == -1)) {
-		RTT::log(RTT::Warning) << "call configureUserside first"
-				<< RTT::endlog();
-		return false;
-	}
-	// check already existing dimensions
-	int dimAmount = 0;
-	for (int i = 0; i < _robot_chain_ports.size(); i++) {
-		dimAmount += _robot_chain_ports[i]->data.angles.rows();
-	}
-	if ((dimAmount + dim) > _command_dims) {
-		RTT::log(RTT::Warning) << "Adding this port would in total("
-				<< (dimAmount + dim)
-				<< ") exceed the dimensions of the command input( "
-				<< _command_dims << ")! Hence, skipping this port!"
-				<< RTT::endlog();
-		return false;
-	}
+void RTTKinematicChainJa::setChainandCtrlName(std::string chainName,
+		std::string ctrlName) {
+	_chain_name = chainName;
+	_ctrl_name = ctrlName;
+}
 
+bool RTTKinematicChainJa::addPortRobotside(std::string portName, int dim) {
 	rstrt::kinematics::JointAngles tmpJa(dim);
-	tmpJa.angles.setZero();
+	tmpJa.angles.fill(0);
 
 	boost::shared_ptr<OutputPortContainer<rstrt::kinematics::JointAngles> > tmpCont(
 			new OutputPortContainer<rstrt::kinematics::JointAngles>());
@@ -137,6 +145,12 @@ bool RTTKinematicChainJa::addPortRobotside(std::string portName, int dim) {
 	this->ports()->addPort(tmpCont->port);
 
 	_robot_chain_ports.push_back(tmpCont);
+
+	_command_dims = 0;
+	for (int i = 0; i < _robot_chain_ports.size(); i++) {
+		_command_dims += _robot_chain_ports[i]->data.angles.rows();
+	}
+
 	return true;
 }
 
@@ -147,28 +161,24 @@ bool RTTKinematicChainJa::configureHook() {
 			&& (_command_dims > -1)) {
 		// create dummy data
 		rstrt::robot::JointState tmpFb(_feedback_dims);
-		tmpFb.angles.setZero();
-		tmpFb.velocities.setZero();
-		tmpFb.torques.setZero();
+		tmpFb.angles.fill(0);
+		tmpFb.velocities.fill(0);
+		tmpFb.torques.fill(0);
 
 		rstrt::kinematics::JointAngles tmpCmd(_command_dims);
-		tmpCmd.angles.setZero();
+		tmpCmd.angles.fill(0);
 
 		_feedback_port.data.angles = tmpFb.angles;
-		_feedback_port.port.setName("feedback_out");
+		_feedback_port.port.setName("feedback");
 		// TODO add doc
 		_feedback_port.port.setDataSample(tmpFb);
 
 		_command_port.data.angles = tmpCmd.angles;
-		_command_port.port.setName("command_in");
-
-		_robot_feedback_port.data.angles = tmpFb.angles;
-		_robot_feedback_port.port.setName("robot_fb_in");
+		_command_port.port.setName("command");
 
 		// add ports to context!
 		this->ports()->addPort(_feedback_port.port);
 		this->ports()->addPort(_command_port.port);
-		this->ports()->addPort(_robot_feedback_port.port);
 
 		return true;
 	} else {
@@ -213,16 +223,78 @@ void RTTKinematicChainJa::updateHook() {
 			}
 		}
 	}
-	// write feedback to user-side
-	if (_robot_feedback_port.port.connected()) {
-		_robot_feedback_port.flowstatus = _robot_feedback_port.port.readNewest(
-				_robot_feedback_port.data);
-		if (_robot_feedback_port.flowstatus == RTT::NewData) {
-			if (_feedback_port.port.connected()) {
-				_feedback_port.port.write(_robot_feedback_port.data);
+
+	if (_feedback_port.port.connected()) {
+		for (unsigned int i = 0; i < _robot_feedback_ports.size(); i++) {
+			if (_robot_feedback_ports[i]->port.connected()) {
+				_robot_feedback_ports[i]->flowstatus =
+						_robot_feedback_ports[i]->port.read(
+								_robot_feedback_ports[i]->data);
+				if (_robot_feedback_ports[i]->flowstatus != RTT::NoData) {
+					unsigned int floatingIndex = 0;
+					for (unsigned int j = 0;
+							j < _robot_feedback_ports[i]->data.angles.rows();
+							j++) {
+						_feedback_port.data.angles(j + floatingIndex) =
+								_robot_feedback_ports[i]->data.angles(j);
+
+						_feedback_port.data.velocities(j + floatingIndex) =
+								_robot_feedback_ports[i]->data.velocities(j);
+
+						_feedback_port.data.torques(j + floatingIndex) =
+								_robot_feedback_ports[i]->data.torques(j);
+					}
+					floatingIndex +=
+							_robot_feedback_ports[i]->data.angles.rows();
+				}
 			}
 		}
+		_feedback_port.port.write(_feedback_port.data);
 	}
+}
+
+bool RTTKinematicChainJa::connectFunctionCallHandler() {
+	std::vector<TaskContext*> taskContexts;
+	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
+		TaskContext* tmp = this->getTaskContextFromPort(
+				this->getPort(_robot_chain_ports[i]->port.getName()));
+		if ((tmp) && (tmp->getName() != this->getName())) {
+			taskContexts.push_back(tmp);
+		}
+	}
+	for (unsigned int i = 0; i < taskContexts.size(); i++) {
+		if (taskContexts[i]->provides()->hasOperation("setControlMode")) {
+			RTT::log(RTT::Error) << "taskContexts[i] name: "
+					<< taskContexts[i]->getName() << RTT::endlog();
+			callers.push_back(taskContexts[i]->getOperation("setControlMode"));
+		}
+	}
+	if (callers.size() > 0) {
+		return true;
+	}
+	return false;
+}
+
+bool RTTKinematicChainJa::startHook() {
+	if (!is_joint_mapping_loaded) {
+		RTT::log(RTT::Warning)
+				<< "this.retrieveJointMappings() needs to be called before this component can be started!"
+				<< RTT::endlog();
+		return false;
+	}
+
+	if ((_chain_name == "") || (_ctrl_name == "")) {
+		RTT::log(RTT::Warning)
+				<< "this.setChainandCtrlName() needs to be called before this component can be started!"
+				<< RTT::endlog();
+		return false;
+	}
+
+	for (unsigned int i = 0; i < callers.size(); i++) {
+		callers[i](_chain_name, _ctrl_name);
+		// handle exception and return of false... TODO
+	}
+	return true;
 }
 
 ORO_CREATE_COMPONENT_LIBRARY()

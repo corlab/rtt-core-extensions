@@ -68,13 +68,16 @@ public:
 	void updateHook();
 
 	// operation to configure the ports
-	bool configureFBandCMDdimensions(int dimFB, int dimCmdInput);
 	bool addPortRobotside(std::string portName, int dim);
+	bool addPortRobotFBside(std::string portName, int dim);
+	void setChainandCtrlName(std::string chainName, std::string ctrlName);
 
 	void retrieveJointMappingsHook(std::string const& port_name,
 			std::map<std::string, int> const& mapping);
 
 	void processJointMappingsHook();
+
+	bool startHook();
 
 	/**
 	 * Provides the joint name to index mapping for other components to retrieve.
@@ -85,19 +88,26 @@ public:
 
 protected:
 
+	bool connectFunctionCallHandler();
+
 private:
 	int _feedback_dims;
 	int _command_dims;
+	std::string _chain_name;
+	std::string _ctrl_name;
 	std::vector<
 			boost::shared_ptr<
 					OutputPortContainer<rstrt::kinematics::JointAngles> > > _robot_chain_ports;
 	// TODO change _feedback_port to normal OutputPort!
 	OutputPortContainer<rstrt::robot::JointState> _feedback_port;
 
+	std::vector<boost::shared_ptr<InputPortContainer<rstrt::robot::JointState> > > _robot_feedback_ports;
+
 	InputPortContainer<rstrt::kinematics::JointAngles> _command_port;
-	InputPortContainer<rstrt::robot::JointState> _robot_feedback_port;
 
 	bool executeContinuously;
+
+	std::vector<RTT::OperationCaller<bool(std::string, std::string)> > callers;
 
 };
 
