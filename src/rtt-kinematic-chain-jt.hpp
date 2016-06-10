@@ -93,8 +93,8 @@ protected:
 private:
 	int _feedback_dims;
 	int _command_dims;
-	std::string _chain_name;
-	std::string _ctrl_name;
+	std::vector<std::string> _chain;
+	std::vector<std::string> _ctrlmode;
 	std::vector<
 			boost::shared_ptr<
 					OutputPortContainer<rstrt::dynamics::JointTorques> > > _robot_chain_ports;

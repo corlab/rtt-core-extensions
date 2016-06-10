@@ -127,8 +127,8 @@ bool RTTKinematicChainJt::addPortRobotFBside(std::string portName, int dim) {
 
 void RTTKinematicChainJt::setChainandCtrlName(std::string chainName,
 		std::string ctrlName) {
-	_chain_name = chainName;
-	_ctrl_name = ctrlName;
+	_chain.push_back(chainName);
+	_ctrlmode.push_back(ctrlName);
 }
 
 bool RTTKinematicChainJt::addPortRobotside(std::string portName, int dim) {
@@ -283,7 +283,7 @@ bool RTTKinematicChainJt::startHook() {
 		return false;
 	}
 
-	if ((_chain_name == "") || (_ctrl_name == "")) {
+	if ((_chain.size() == 0) || (_ctrlmode.size() == 0)) {
 		RTT::log(RTT::Warning)
 				<< "this.setChainandCtrlName() needs to be called before this component can be started!"
 				<< RTT::endlog();
@@ -291,7 +291,7 @@ bool RTTKinematicChainJt::startHook() {
 	}
 
 	for (unsigned int i = 0; i < callers.size(); i++) {
-		callers[i](_chain_name, _ctrl_name);
+		callers[i](_chain[i], _ctrlmode[i]);
 		// handle exception and return of false... TODO
 	}
 	return true;
