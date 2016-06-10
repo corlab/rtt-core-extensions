@@ -264,9 +264,11 @@ bool RTTKinematicChainJt::connectFunctionCallHandler() {
 	}
 	for (unsigned int i = 0; i < taskContexts.size(); i++) {
 		if (taskContexts[i]->provides()->hasOperation("setControlMode")) {
-			RTT::log(RTT::Error) << "taskContexts[i] name: "
-					<< taskContexts[i]->getName() << RTT::endlog();
 			callers.push_back(taskContexts[i]->getOperation("setControlMode"));
+		} else {
+			RTT::log(RTT::Info) << "Component " << taskContexts[i]->getName()
+					<< " does not implement mandatory operation: setControlMode!"
+					<< RTT::endlog();
 		}
 	}
 	if (callers.size() > 0) {
