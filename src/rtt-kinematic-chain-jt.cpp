@@ -168,7 +168,7 @@ bool RTTKinematicChainJt::configureHook() {
 		rstrt::dynamics::JointTorques tmpCmd(_command_dims);
 		tmpCmd.torques.fill(0);
 
-		_feedback_port.data.torques = tmpFb.torques;
+		_feedback_port.data = tmpFb;
 		_feedback_port.port.setName("feedback");
 		// TODO add doc
 		_feedback_port.port.setDataSample(tmpFb);

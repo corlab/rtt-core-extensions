@@ -168,10 +168,10 @@ bool RTTKinematicChainJa::configureHook() {
 		rstrt::kinematics::JointAngles tmpCmd(_command_dims);
 		tmpCmd.angles.fill(0);
 
-		_feedback_port.data.angles = tmpFb.angles;
+		_feedback_port.data = tmpFb;
 		_feedback_port.port.setName("feedback");
 		// TODO add doc
-		_feedback_port.port.setDataSample(tmpFb);
+		_feedback_port.port.setDataSample(_feedback_port.data);
 
 		_command_port.data.angles = tmpCmd.angles;
 		_command_port.port.setName("command");
@@ -231,6 +231,9 @@ void RTTKinematicChainJa::updateHook() {
 						_robot_feedback_ports[i]->port.read(
 								_robot_feedback_ports[i]->data);
 				if (_robot_feedback_ports[i]->flowstatus != RTT::NoData) {
+
+
+
 					unsigned int floatingIndex = 0;
 					for (unsigned int j = 0;
 							j < _robot_feedback_ports[i]->data.angles.rows();
