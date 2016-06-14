@@ -30,6 +30,7 @@
 
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
+#include <unordered_map>
 
 #define joint_names_mapping_lookup(memberDict, remoteDict, jointName) memberDict.jointName = remoteDict["jointName"]
 
@@ -49,7 +50,7 @@ public:
 	 * mapping		mapping containing the joint names and associated indexes
 	 */
 	virtual void retrieveJointMappingsHook(std::string const& port_name,
-			std::map<std::string, int> const& mapping) = 0;
+            std::vector<std::pair<std::string, int>> const& mapping) = 0;
 
 	/**
 	 * Sometimes further processing is needed after the mappings are received.
@@ -76,7 +77,7 @@ protected:
 	 * Actually retrieves the joint mapping over the port connection to another component.
 	 */
 	bool getJointNameMappingFromPort(RTT::base::PortInterface* port,
-			std::map<std::string, int>& mapping);
+            std::vector<std::pair<std::string, int>>& mapping);
 
 	/**
 	 * Use this method to check if the joint mapping is fully loaded by now.

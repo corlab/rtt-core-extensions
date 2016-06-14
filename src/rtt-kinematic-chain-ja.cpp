@@ -56,9 +56,9 @@ RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
 			RTT::ClientThread);
 }
 
-std::map<std::string, int> RTTKinematicChainJa::getJointMappingForPort(
-		std::string portName) {
-	std::map<std::string, int> result;
+std::vector<std::pair<std::string, int>> RTTKinematicChainJa::getJointMappingForPort(std::string portName)
+{
+    std::vector<std::pair<std::string, int>> result;
 	if (is_joint_mapping_loaded) {
 		if (_command_port.port.getName() == portName) {
 			result = _command_port.joint_name_mapping;
@@ -73,9 +73,11 @@ std::map<std::string, int> RTTKinematicChainJa::getJointMappingForPort(
 
 void RTTKinematicChainJa::retrieveJointMappingsHook(
 		std::string const& port_name,
-		std::map<std::string, int> const& mapping) {
+        std::vector<std::pair<std::string, int>> const& mapping)
+{
 	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
 		if (_robot_chain_ports[i]->port.getName() == port_name) {
+            for(unsigned int j = 0; j < mapping.size(); ++j)
 			_robot_chain_ports[i]->joint_name_mapping = mapping;
 			break;
 		}
@@ -85,12 +87,13 @@ void RTTKinematicChainJa::retrieveJointMappingsHook(
 void RTTKinematicChainJa::processJointMappingsHook() {
 	// further processing of mappings is needed
 	unsigned floatingIndex = 0;
-	std::map<std::string, int>::iterator iter;
-	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
-		for (iter = _robot_chain_ports[i]->joint_name_mapping.begin();
-				iter != _robot_chain_ports[i]->joint_name_mapping.end();
-				++iter) {
-			_command_port.joint_name_mapping[iter->first] = floatingIndex;
+    for (unsigned int i = 0; i < _robot_chain_ports.size(); i++)
+    {
+        for (unsigned int j  = 0; j < _robot_chain_ports[i]->joint_name_mapping.size(); ++j){
+            std::pair<std::string, int> p;
+            p.first = _robot_chain_ports[i]->joint_name_mapping[j].first;
+            p.second = floatingIndex;
+            _command_port.joint_name_mapping.push_back(p);
 			floatingIndex++;
 		}
 	}

@@ -73,7 +73,7 @@ public:
 	void setChainandCtrlName(std::string chainName, std::string ctrlName);
 
 	void retrieveJointMappingsHook(std::string const& port_name,
-			std::map<std::string, int> const& mapping);
+            std::vector<std::pair<std::string, int>> const& mapping);
 
 	void processJointMappingsHook();
 
@@ -84,7 +84,7 @@ public:
 	 * If there isn't such an port (portName) existing, or used in an kinematic chain,
 	 * the call will return an empty map. Otherwise it will contain the mapping.
 	 */
-	std::map<std::string, int> getJointMappingForPort(std::string portName);
+    std::vector<std::pair<std::string, int>> getJointMappingForPort(std::string portName);
 
 protected:
 

@@ -32,7 +32,7 @@ using namespace cogimon;
 using namespace RTT;
 
 RTTJointAwareTaskContext::RTTJointAwareTaskContext(const std::string &name) :
-		TaskContext(name), is_joint_mapping_loaded(false) {
+        TaskContext(name), is_joint_mapping_loaded(false) {
 	this->addOperation("retrieveJointMappings",
 			&RTTJointAwareTaskContext::retrieveJointMappings, this,
 			ClientThread).doc(
@@ -58,7 +58,7 @@ bool RTTJointAwareTaskContext::retrieveJointMappingsSelectively(
 		const std::string& portName) {
 	base::PortInterface* port = this->getPort(portName);
 	if (port) {
-		std::map<std::string, int> mapping;
+        std::vector<std::pair<std::string, int>> mapping;
 		if (getJointNameMappingFromPort(port, mapping)) {
 			// convert the mapping the way you want, using the following macro: joint_names_mapping_lookup
 			retrieveJointMappingsHook(portName, mapping);
@@ -74,7 +74,7 @@ bool RTTJointAwareTaskContext::retrieveJointMappings() {
 	std::vector<base::PortInterface*>::iterator ports_iter;
 	bool not_even_one = true;
 	for (ports_iter = ports.begin(); ports_iter != ports.end(); ++ports_iter) {
-		std::map<std::string, int> mapping;
+        std::vector<std::pair<std::string, int>> mapping;
 		if (getJointNameMappingFromPort(*ports_iter, mapping)) {
 			// convert the mapping the way you want, using the following macro: joint_names_mapping_lookup
 			retrieveJointMappingsHook((*ports_iter)->getName(), mapping);
@@ -95,7 +95,7 @@ bool RTTJointAwareTaskContext::isJointMappingLoaded() {
 }
 
 bool RTTJointAwareTaskContext::getJointNameMappingFromPort(
-		RTT::base::PortInterface* port, std::map<std::string, int>& mapping) {
+        RTT::base::PortInterface* port, std::vector<std::pair<std::string, int>>& mapping) {
 	// get remote task context via the output port
 	// TODO validate the current channel, there could be more connections available!
 	if (!port->connected()) {
@@ -131,7 +131,7 @@ bool RTTJointAwareTaskContext::getJointNameMappingFromPort(
 			if (remoteServicePtr->getService("joint_info")->hasOperation(
 					"getJointMappingForPort")) {
 
-				OperationCaller<std::map<std::string, int>(std::string)> opCaller =
+                OperationCaller<std::vector<std::pair<std::string, int>>(std::string)> opCaller =
 						remoteServicePtr->getService("joint_info")->getOperation(
 								"getJointMappingForPort");
 				if (opCaller.ready()) {

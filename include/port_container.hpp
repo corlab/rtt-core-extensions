@@ -30,6 +30,7 @@
 
 #include <string>
 #include <rtt/Port.hpp>
+#include <unordered_map>
 
 namespace cogimon {
     template <class T> class InputPortContainer {
@@ -45,7 +46,7 @@ namespace cogimon {
         RTT::InputPort<T> port;
         RTT::FlowStatus flowstatus;
         T data;
-        std::map<std::string, int> joint_name_mapping;
+        std::vector<std::pair<std::string, int>> joint_name_mapping;
     };
 
     template <class T> class OutputPortContainer {
@@ -60,7 +61,7 @@ namespace cogimon {
 
         RTT::OutputPort<T> port;
         T data;
-        std::map<std::string, int> joint_name_mapping;
+        std::vector<std::pair<std::string, int>> joint_name_mapping;
     };
 }
 #endif

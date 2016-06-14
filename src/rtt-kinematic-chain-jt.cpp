@@ -56,9 +56,9 @@ RTTKinematicChainJt::RTTKinematicChainJt(const std::string &name) :
 			RTT::ClientThread);
 }
 
-std::map<std::string, int> RTTKinematicChainJt::getJointMappingForPort(
+std::vector<std::pair<std::string, int>> RTTKinematicChainJt::getJointMappingForPort(
 		std::string portName) {
-	std::map<std::string, int> result;
+    std::vector<std::pair<std::string, int>> result;
 	if (is_joint_mapping_loaded) {
 		if (_command_port.port.getName() == portName) {
 			result = _command_port.joint_name_mapping;
@@ -73,7 +73,7 @@ std::map<std::string, int> RTTKinematicChainJt::getJointMappingForPort(
 
 void RTTKinematicChainJt::retrieveJointMappingsHook(
 		std::string const& port_name,
-		std::map<std::string, int> const& mapping) {
+        std::vector<std::pair<std::string, int>> const& mapping) {
 	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
 		if (_robot_chain_ports[i]->port.getName() == port_name) {
 			_robot_chain_ports[i]->joint_name_mapping = mapping;
@@ -85,15 +85,16 @@ void RTTKinematicChainJt::retrieveJointMappingsHook(
 void RTTKinematicChainJt::processJointMappingsHook() {
 	// further processing of mappings is needed
 	unsigned floatingIndex = 0;
-	std::map<std::string, int>::iterator iter;
-	for (unsigned int i = 0; i < _robot_chain_ports.size(); i++) {
-		for (iter = _robot_chain_ports[i]->joint_name_mapping.begin();
-				iter != _robot_chain_ports[i]->joint_name_mapping.end();
-				++iter) {
-			_command_port.joint_name_mapping[iter->first] = floatingIndex;
-			floatingIndex++;
-		}
-	}
+    for (unsigned int i = 0; i < _robot_chain_ports.size(); i++)
+    {
+        for (unsigned int j  = 0; j < _robot_chain_ports[i]->joint_name_mapping.size(); ++j){
+            std::pair<std::string, int> p;
+            p.first = _robot_chain_ports[i]->joint_name_mapping[j].first;
+            p.second = floatingIndex;
+            _command_port.joint_name_mapping.push_back(p);
+            floatingIndex++;
+        }
+    }
 	if (!connectFunctionCallHandler()) {
 		RTT::log(RTT::Error)
 				<< "Could not connect to setControlModes IF. Hence I won't be able to to change the ctrl mode automatically."
