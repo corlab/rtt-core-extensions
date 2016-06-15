@@ -235,8 +235,8 @@ void RTTKinematicChainJt::updateHook() {
 					for (unsigned int j = 0;
 							j < _robot_feedback_ports[i]->data.torques.rows();
 							j++) {
-						_feedback_port.data.torques(j + floatingIndex) =
-								_robot_feedback_ports[i]->data.torques(j);
+						_feedback_port.data.angles(j + floatingIndex) =
+								_robot_feedback_ports[i]->data.angles(j);
 
 						_feedback_port.data.velocities(j + floatingIndex) =
 								_robot_feedback_ports[i]->data.velocities(j);
