@@ -1,4 +1,4 @@
- # This file is a part of RST-RT (CogIMon) project
+ # This file is a part of CoSimA (CogIMon) project
  #
  # Copyright (C) 2016 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  #
@@ -25,9 +25,11 @@
 
 # Sources
 
-set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp")
+set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"
+			"${CMAKE_PROJECT_NAME}/JointMappingService.cpp")
 
-set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp")
+set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp"
+			"${CMAKE_PROJECT_NAME}/JointMappingService.hpp")
 
 # Shared object
 
