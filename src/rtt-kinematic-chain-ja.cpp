@@ -1,6 +1,6 @@
 /* ============================================================
  *
- * This file is a part of RST-RT (CogIMon) project
+ * This file is a part of CoSimA (CogIMon) project
  *
  * Copyright (C) 2016 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  *
@@ -39,6 +39,11 @@ using namespace Eigen;
 RTTKinematicChainJa::RTTKinematicChainJa(const std::string &name) :
 		RTTJointAwareTaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
 				false) {
+
+	jointMapping_service_ptr = boost::shared_ptr<cosima::JointMappingServiceReq>(new cosima::JointMappingServiceReq(this));
+	this->requires()->addServiceRequester(jointMapping_service_ptr);
+
+
 
 	this->properties()->addProperty("executeContinuously", executeContinuously);
 

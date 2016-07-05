@@ -1,6 +1,6 @@
 /* ============================================================
  *
- * This file is a part of RST-RT (CogIMon) project
+ * This file is a part of CoSimA (CogIMon) project
  *
  * Copyright (C) 2016 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  *
@@ -52,6 +52,8 @@
 #include <rst-rt/kinematics/JointAngles.hpp>
 #include <rst-rt/robot/JointState.hpp>
 
+// RTT CORE EXTENSIONS includes
+#include "rtt-core-extensions/JointMappingService.hpp"
 #include "rtt-core-extensions/rtt-jointaware-taskcontext.hpp"
 
 #include <port_container.hpp>
@@ -88,9 +90,12 @@ public:
 
 protected:
 
+
 	bool connectFunctionCallHandler();
 
 private:
+	boost::shared_ptr<cosima::JointMappingServiceReq> jointMapping_service_ptr;
+
 	int _feedback_dims;
 	int _command_dims;
 

@@ -1,6 +1,6 @@
 /* ============================================================
  *
- * This file is a part of RST-RT (CogIMon) project
+ * This file is a part of CoSimA (CogIMon) project
  *
  * Copyright (C) 2016 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  *
@@ -40,6 +40,10 @@ RTTKinematicChainJt::RTTKinematicChainJt(const std::string &name) :
 		RTTJointAwareTaskContext(name), _feedback_dims(-1), _command_dims(-1), executeContinuously(
 				false) {
 
+	provv = boost::shared_ptr<cosima::JointMappingServiceProv>(new cosima::JointMappingServiceProv(this, this));
+
+	this->provides()->addService(provv);
+
 	this->properties()->addProperty("executeContinuously", executeContinuously);
 
 	this->addOperation("addPortRobotside",
@@ -54,6 +58,12 @@ RTTKinematicChainJt::RTTKinematicChainJt(const std::string &name) :
 	this->provides("joint_info")->addOperation("getJointMappingForPort",
 			&RTTKinematicChainJt::getJointMappingForPort, this,
 			RTT::ClientThread);
+}
+
+cosima::KinematicChainMap RTTKinematicChainJt::getKinematicChainsAndJoints() {
+	cosima::KinematicChainMap a;
+	std::cout << "askdasdjklasdjklasdjkljkasdl" << std::endl;
+	return a;
 }
 
 std::map<std::string, int> RTTKinematicChainJt::getJointMappingForPort(

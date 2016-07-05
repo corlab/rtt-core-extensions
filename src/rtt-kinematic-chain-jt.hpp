@@ -1,6 +1,6 @@
 /* ============================================================
  *
- * This file is a part of RST-RT (CogIMon) project
+ * This file is a part of CoSimA (CogIMon) project
  *
  * Copyright (C) 2016 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  *
@@ -52,14 +52,19 @@
 #include <rst-rt/dynamics/JointTorques.hpp>
 #include <rst-rt/robot/JointState.hpp>
 
+// RTT CORE EXTENSIONS includes
+#include "rtt-core-extensions/JointMappingService.hpp"
 #include "rtt-core-extensions/rtt-jointaware-taskcontext.hpp"
 
 #include <port_container.hpp>
 
 namespace cogimon {
 
-class RTTKinematicChainJt: public RTTJointAwareTaskContext {
+class RTTKinematicChainJt: public RTTJointAwareTaskContext, protected cosima::JointMappingIF {
 public:
+
+	boost::shared_ptr<cosima::JointMappingServiceProv> provv;
+
 	RTTKinematicChainJt(std::string const& name);
 	virtual ~RTTKinematicChainJt() {
 	}
@@ -87,6 +92,7 @@ public:
 	std::map<std::string, int> getJointMappingForPort(std::string portName);
 
 protected:
+	virtual cosima::KinematicChainMap getKinematicChainsAndJoints();
 
 	bool connectFunctionCallHandler();
 
