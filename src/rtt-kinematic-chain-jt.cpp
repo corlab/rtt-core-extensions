@@ -225,13 +225,13 @@ void RTTKinematicChainJt::updateHook() {
 	}
 
 	if (_feedback_port.port.connected()) {
+		unsigned int floatingIndex = 0;
 		for (unsigned int i = 0; i < _robot_feedback_ports.size(); i++) {
 			if (_robot_feedback_ports[i]->port.connected()) {
 				_robot_feedback_ports[i]->flowstatus =
 						_robot_feedback_ports[i]->port.read(
 								_robot_feedback_ports[i]->data);
 				if (_robot_feedback_ports[i]->flowstatus != RTT::NoData) {
-					unsigned int floatingIndex = 0;
 					for (unsigned int j = 0;
 							j < _robot_feedback_ports[i]->data.torques.rows();
 							j++) {
