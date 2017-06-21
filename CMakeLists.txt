@@ -49,6 +49,7 @@ endif()
 
 include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake )
 
+find_package(YCM QUIET)
 find_package(Eigen3)
 add_definitions(${EIGEN3_DEFINITIONS})
 include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
