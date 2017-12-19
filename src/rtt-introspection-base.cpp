@@ -52,13 +52,15 @@ bool RTTIntrospectionBase::configureHook() {
 	cts_update = rstrt::monitoring::CallTraceSample("updateHook()", this->getName(), 0.1, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	cts_stop = rstrt::monitoring::CallTraceSample("stopHook()", this->getName(), 0.1, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	cts_cleanup = rstrt::monitoring::CallTraceSample("cleanupHook()", this->getName(), 0.1, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
+
+	cts_port = rstrt::monitoring::CallTraceSample("port_access", this->getName(), 0.1, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	//prepare introspection output ports
     out_call_trace_sample_port.setName("out_call_trace_sample_port");
     out_call_trace_sample_port.doc("Output port for call trace samples");
     out_call_trace_sample_port.setDataSample(cts_update);
     this->provides("introspection")->addPort(out_call_trace_sample_port);
 	
-	return true;
+	return configureHookInternal();
 }
 
 void RTTIntrospectionBase::updateHook() {
@@ -69,39 +71,36 @@ void RTTIntrospectionBase::updateHook() {
 		out_call_trace_sample_port.write(cts_update);
 
 		// launch internal updateHook
-		// TODO
+		updateHookInternal();
 		
 		// end intro
-		
 		cts_update.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
 		cts_update.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 		out_call_trace_sample_port.write(cts_update);
 	} else {
-		// launch internal updateHook
-		// TODO
+		updateHookInternal();
 	}
 }
 
 bool RTTIntrospectionBase::startHook() {
+	bool startRet = false;
 	if (useCallTraceIntrospection) {
 		// start intro
 		cts_start.call_type = rstrt::monitoring::CallTraceSample::CALL_START;
 		cts_start.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 		out_call_trace_sample_port.write(cts_start);
 
-		// launch internal startHook TODO
+		// launch internal startHook
+		startRet = startHookInternal();
 
 		// end intro
 		cts_start.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
 		cts_start.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 		out_call_trace_sample_port.write(cts_start);
 		
-		// TODO return
-		return true;
+		return startRet;
 	} else {
-		// launch internal startHook
-		// TODO return
-		return true;
+		return startHookInternal();
 	}
 }
 
@@ -113,21 +112,64 @@ void RTTIntrospectionBase::stopHook() {
 		out_call_trace_sample_port.write(cts_stop);
 
 		// launch internal stopHook
-		// TODO
+		stopHookInternal();
 
 		// end intro
 		cts_stop.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
 		cts_stop.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 		out_call_trace_sample_port.write(cts_stop);
 	} else {
-		// launch internal stopHook
-		// TODO
+		stopHookInternal();
 	}
 }
 
 void RTTIntrospectionBase::cleanupHook() {
-	// launch internal cleanupHook
-	// TODO
+	cleanupHookInternal();
+}
+
+template<class T>
+RTT::FlowStatus RTTIntrospectionBase::readPort(RTT::InputPort<T>& input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data) {
+	RTT::FlowStatus f = input_port.read(source, copy_old_data);
+	if (useCallTraceIntrospection) {
+		cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		if (f == RTT::NoData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
+		} else if (f == RTT::OldData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
+		} else if (f == RTT::NewData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
+		}
+		out_call_trace_sample_port.write(cts_port);
+	}
+	return f;
+}
+
+template<class T>
+RTT::FlowStatus RTTIntrospectionBase::readPort(RTT::InputPort<T>& input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data) {
+	RTT::FlowStatus f = input_port.read(sample, copy_old_data);
+	if (useCallTraceIntrospection) {
+		cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		if (f == RTT::NoData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
+		} else if (f == RTT::OldData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
+		} else if (f == RTT::NewData) {
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
+		}
+		out_call_trace_sample_port.write(cts_port);
+	}
+	return f;
+}
+
+template<class T>
+bool RTTIntrospectionBase::writePort(RTT::OutputPort<T>& output_port, const T& sample) {
+	bool ret = output_port.write(sample);
+	if (useCallTraceIntrospection) {
+		cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
+		out_call_trace_sample_port.write(cts_port);
+	}
+	return ret;
 }
 
 

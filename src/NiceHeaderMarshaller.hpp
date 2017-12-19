@@ -41,6 +41,7 @@
 #include <rtt/Property.hpp>
 #include <rtt/marsh/StreamProcessor.hpp>
 #include <rtt/marsh/MarshallInterface.hpp>
+#include <map>
 
 namespace RTT
 {
@@ -58,6 +59,7 @@ namespace RTT
         bool did_comment;
         int nameless_counter;
         std::string prefix;
+
         public:
             typedef o_stream output_stream;
             typedef o_stream OutputStream;
