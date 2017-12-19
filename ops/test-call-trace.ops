@@ -1,0 +1,19 @@
+import("eigen_typekit")
+import("rst-rt_typekit")
+import("stdint")
+import("rtt-core-extensions")
+
+loadComponent("filereporter", "cogimon::FileReporting")
+loadService("filereporter", "marshalling")
+
+
+loadComponent("ib", "cogimon::RTTIntrospectionBase")
+setActivityOnCPU("ib",0.1,10,ORO_SCHED_OTHER,0)
+ib.configure()
+
+
+connectPeers("filereporter","ib")
+filereporter.reportPort("ib", "introspection.out_call_trace_sample_port")
+
+filereporter.configure
+filereporter.start

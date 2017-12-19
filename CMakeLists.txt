@@ -24,7 +24,7 @@
  #
 
 cmake_minimum_required(VERSION 2.8.3)
-project(rtt-core-extensions)
+project(rtt-core-extensions CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -82,7 +82,13 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
 
 # Build orocos components
 
-orocos_component(${COMPONENTS_LIB_NAME} src/rtt-kinematic-chain-ja.cpp src/rtt-kinematic-chain-jt.cpp)
+orocos_component(${COMPONENTS_LIB_NAME}
+                    src/rtt-kinematic-chain-ja.cpp
+                    src/rtt-kinematic-chain-jt.cpp
+                    src/rtt-introspection-base.cpp
+                    src/ReportingComponent.cpp
+                    src/FileReporting.cpp
+)
 set_property(TARGET ${COMPONENTS_LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
 
 target_link_libraries(${COMPONENTS_LIB_NAME}

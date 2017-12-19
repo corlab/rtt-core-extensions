@@ -25,14 +25,22 @@
 
 # Sources
 
-set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp")
+set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"          
+)
 
-set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp")
+set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp"
+            "NiceHeaderMarshaller.hpp"
+            "TableHeaderMarshaller.hpp"
+            "TableMarshaller.hpp"
+)
 
 # Shared object
 
 add_library(${LIBRARY_NAME} SHARED
             ${SOURCES})
+
+# Use RTT_STATIC so Orocos does not complain about non component libraries
+set_property(TARGET ${LIBRARY_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_STATIC)
 
 target_link_libraries(${LIBRARY_NAME}
     ${USE_OROCOS_LIBRARIES}
