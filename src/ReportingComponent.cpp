@@ -223,6 +223,9 @@ namespace cogimon
         this->addOperation("reportPort", &ReportingComponent::reportPort , this, RTT::ClientThread).doc("Add a Component's OutputPort for reporting.").arg("Component", "Name of the Component").arg("Port", "Name of the Port.");
         this->addOperation("unreportPort", &ReportingComponent::unreportPort , this, RTT::ClientThread).doc("Remove a Port from reporting.").arg("Component", "Name of the Component").arg("Port", "Name of the Port.");
 
+
+        // report_policy = ConnPolicy::data(ConnPolicy::LOCK_FREE,true,false);
+        // ConnPolicy::buffer
     }
 
     ReportingComponent::~ReportingComponent() {}
@@ -673,8 +676,9 @@ namespace cogimon
         if ( mchecker && mchecker->get() == false ) {
             cleanReport();
             makeReport2();
-        } else
+        } else {
             copydata();
+        }
 
         do {
             // Step 3: print out the result

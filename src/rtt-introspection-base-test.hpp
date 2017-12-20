@@ -25,8 +25,10 @@
  *     Bielefeld University
  *
  * ============================================================ */
-#ifndef RTT_INTROSPECTION_BASE_HPP
-#define RTT_INTROSPECTION_BASE_HPP
+#ifndef RTT_INTROSPECTION_BASE_TEST_HPP
+#define RTT_INTROSPECTION_BASE_TEST_HPP
+
+#include <rtt-introspection-base.hpp>
 
 #include <rtt/TaskContext.hpp>
 #include <rtt/Port.hpp>
@@ -48,53 +50,24 @@
 #include <thread>
 #include <memory>
 
-// RST-RT includes
-#include <rst-rt/monitoring/CallTraceSample.hpp>
-
 #include <rtt/os/TimeService.hpp>
 
 namespace cogimon {
 
-class RTTIntrospectionBase : public RTT::TaskContext {
+class RTTIntrospectionBaseTest : public RTTIntrospectionBase {
 public:
-	RTTIntrospectionBase(std::string const& name);
-	// virtual ~RTTIntrospectionBase() {}
+	RTTIntrospectionBaseTest(std::string const& name);
+	// virtual ~RTTIntrospectionBaseTest() {}
 
-	bool configureHook();
-	bool startHook();
-	void updateHook();
-	void stopHook();
-	void cleanupHook();
-
-	bool configureHookInternal() {return true;};
-	bool startHookInternal() {return true;};
-	void updateHookInternal() {};
-	void stopHookInternal() {};
-	void cleanupHookInternal() {};
-
-
-protected:
-	bool useCallTraceIntrospection;
-
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true);
-
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true);
-
-	template<class T>
-	bool writePort(RTT::OutputPort<T>& output_port, const T& sample);
+	bool configureHookInternal();
+	bool startHookInternal();
+	void updateHookInternal();
+	void stopHookInternal();
+	void cleanupHookInternal();
 
 private:
-	RTT::OutputPort<rstrt::monitoring::CallTraceSample> out_call_trace_sample_port;
-	rstrt::monitoring::CallTraceSample cts_start;
-	rstrt::monitoring::CallTraceSample cts_configure;
-	rstrt::monitoring::CallTraceSample cts_update;
-	rstrt::monitoring::CallTraceSample cts_stop;
-	rstrt::monitoring::CallTraceSample cts_cleanup;
-
-	rstrt::monitoring::CallTraceSample cts_port;
-
+	RTT::OutputPort<double> out_data_port;
+	double out_data;
 	RTT::os::TimeService* time_service;
 };
 

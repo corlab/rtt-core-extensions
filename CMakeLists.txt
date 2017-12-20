@@ -61,6 +61,8 @@ add_definitions(${RST-RT_CFLAGS})
 link_directories(${RST-RT_LIBRARY_DIR} ${RST-RT_LIBRARY_DIRS})
 
 include_directories(
+    src
+    src/rtt-core-extensions
     include
     ${Boost_INCLUDE_DIR}
     ${USE_OROCOS_INCLUDE_DIRS}
@@ -85,9 +87,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
 orocos_component(${COMPONENTS_LIB_NAME}
                     src/rtt-kinematic-chain-ja.cpp
                     src/rtt-kinematic-chain-jt.cpp
-                    src/rtt-introspection-base.cpp
-                    src/ReportingComponent.cpp
+                    #"src/${CMAKE_PROJECT_NAME}/rtt-introspection-base.cpp"
+                    #src/ReportingComponent.cpp
                     src/FileReporting.cpp
+                    src/rtt-introspection-base-test.cpp
 )
 set_property(TARGET ${COMPONENTS_LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
 

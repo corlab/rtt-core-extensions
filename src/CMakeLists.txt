@@ -25,13 +25,14 @@
 
 # Sources
 
-set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"          
+set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"
+            "${CMAKE_PROJECT_NAME}/rtt-introspection-base.cpp"
+            ReportingComponent.cpp       
 )
 
 set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp"
-            "NiceHeaderMarshaller.hpp"
-            "TableHeaderMarshaller.hpp"
-            "TableMarshaller.hpp"
+            "${CMAKE_PROJECT_NAME}/rtt-introspection-base.hpp"
+            ReportingComponent.hpp
 )
 
 # Shared object
@@ -43,20 +44,20 @@ add_library(${LIBRARY_NAME} SHARED
 set_property(TARGET ${LIBRARY_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_STATIC)
 
 target_link_libraries(${LIBRARY_NAME}
-    ${USE_OROCOS_LIBRARIES}
-    ${OROCOS-RTT_LIBRARIES}
-    ${Boost_LIBRARIES}
-    ${RST-RT_LIBRARIES}
+            ${USE_OROCOS_LIBRARIES}
+            ${OROCOS-RTT_LIBRARIES}
+            ${Boost_LIBRARIES}
+            ${RST-RT_LIBRARIES}
 )
 
 # Installation
 
 install(TARGETS ${LIBRARY_NAME}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
 
 install(DIRECTORY ${CMAKE_PROJECT_NAME}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/${CMAKE_PROJECT_NAME}${INSTALL_SUFFIX}"
-    PATTERN "*.cpp" EXCLUDE)
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/include/${CMAKE_PROJECT_NAME}${INSTALL_SUFFIX}"
+            PATTERN "*.cpp" EXCLUDE)
 

@@ -7,8 +7,8 @@ loadComponent("filereporter", "cogimon::FileReporting")
 loadService("filereporter", "marshalling")
 
 
-loadComponent("ib", "cogimon::RTTIntrospectionBase")
-setActivityOnCPU("ib",0.1,10,ORO_SCHED_OTHER,0)
+loadComponent("ib", "cogimon::RTTIntrospectionBaseTest")
+setActivityOnCPU("ib",0.1,10,ORO_SCHED_OTHER,2)
 ib.configure()
 
 
