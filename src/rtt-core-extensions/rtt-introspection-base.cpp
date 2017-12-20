@@ -39,9 +39,10 @@ using namespace Eigen;
 
 RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContext(name),
 																	  useCallTraceIntrospection(true),
-																	  call_trace_storage_size(3200),
-																	  cts_send_latest_after(std::numeric_limits<uint_least64_t>::infinity()),
-																	  cts_last_send(0) {
+																	  call_trace_storage_size(8),
+																	  cts_send_latest_after(UINT_LEAST64_MAX),
+																	  cts_last_send(0),
+																	  cts_send_pro_hook(true) {
 	this->provides("introspection")->addProperty("useCallTraceIntrospection", useCallTraceIntrospection).doc("Enable/Disable the introspection output.");
 	this->provides("introspection")->addProperty("cts_send_latest_after", cts_send_latest_after).doc("Amount of time that can maximally pass before sending the samples.");
 	this->provides("introspection")->addOperation("setCallTraceStorageSize", &RTTIntrospectionBase::setCallTraceStorageSize, this).doc("Set the size of the introspection output storage.");
@@ -98,9 +99,8 @@ void RTTIntrospectionBase::updateHook() {
 		cts_update.call_duration = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 		// out_call_trace_sample_port.write(cts_update);
 
-
 		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 			// publish if the time limit has been passed or if the storage is full.
 			out_call_trace_sample_vec_port.write(call_trace_storage);
 			cts_last_send = tmp_send_time;
@@ -129,7 +129,7 @@ bool RTTIntrospectionBase::startHook() {
 		// out_call_trace_sample_port.write(cts_start);
 
 		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 			// publish if the time limit has been passed or if the storage is full.
 			out_call_trace_sample_vec_port.write(call_trace_storage);
 			cts_last_send = tmp_send_time;
@@ -158,7 +158,7 @@ void RTTIntrospectionBase::stopHook() {
 		// out_call_trace_sample_port.write(cts_stop);
 
 		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 			// publish if the time limit has been passed or if the storage is full.
 			out_call_trace_sample_vec_port.write(call_trace_storage);
 			cts_last_send = tmp_send_time;
@@ -171,6 +171,7 @@ void RTTIntrospectionBase::stopHook() {
 }
 
 void RTTIntrospectionBase::cleanupHook() {
+	cts_send_latest_after = UINT_LEAST64_MAX;
 	cleanupHookInternal();
 }
 

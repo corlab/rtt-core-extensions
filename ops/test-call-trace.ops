@@ -11,9 +11,19 @@ loadComponent("ib", "cogimon::RTTIntrospectionBaseTest")
 setActivityOnCPU("ib",0.1,10,ORO_SCHED_OTHER,2)
 ib.configure()
 
+loadComponent("ib2", "cogimon::RTTIntrospectionBaseTest")
+setActivityOnCPU("ib2",0.1,10,ORO_SCHED_OTHER,3)
+ib2.configure()
+
 
 connectPeers("filereporter","ib")
-filereporter.reportPort("ib", "introspection.out_call_trace_sample_port")
+connectPeers("filereporter","ib2")
+# filereporter.reportPort("ib", "introspection.out_call_trace_sample_port")
+filereporter.reportPort("ib", "introspection.out_call_trace_sample_vec_port")
+filereporter.reportPort("ib2", "introspection.out_call_trace_sample_vec_port")
 
-filereporter.configure
-filereporter.start
+filereporter.configure()
+filereporter.start()
+
+ib.start()
+ib2.start()

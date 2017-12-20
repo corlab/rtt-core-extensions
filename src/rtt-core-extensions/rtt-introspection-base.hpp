@@ -82,7 +82,7 @@ public:
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-			if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+			if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				cts_last_send = tmp_send_time;
@@ -107,7 +107,7 @@ public:
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-			if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+			if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				cts_last_send = tmp_send_time;
@@ -126,7 +126,7 @@ public:
 			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
 			// out_call_trace_sample_port.write(cts_port);
 			RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-			if (((tmp_send_time - cts_last_send) > cts_send_latest_after) || (call_trace_storage.size() >= call_trace_storage_size)) {
+			if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				cts_last_send = tmp_send_time;
@@ -164,6 +164,8 @@ private:
 
 	std::vector<rstrt::monitoring::CallTraceSample> call_trace_storage;
 	int call_trace_storage_size;
+
+	bool cts_send_pro_hook;
 };
 
 }

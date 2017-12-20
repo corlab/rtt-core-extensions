@@ -95,6 +95,11 @@ namespace cogimon
             return false;
         }
 
+        // Do not decompose rstrt.monitoring.CallTraceSample[].
+        if (!dsb->getTypeName().compare("rstrt.monitoring.CallTraceSample[]")) {
+            return false;
+        }
+
         targetbag.setType( dsb->getTypeName() );
 
         // needed for recursion.
@@ -527,8 +532,7 @@ namespace cogimon
     bool ReportingComponent::reportDataSource(std::string tag, std::string type, base::DataSourceBase::shared_ptr orig, base::InputPortInterface* ipi, bool track)
     {
         // check for duplicates:
-        for (Reports::iterator it = root.begin();
-             it != root.end(); ++it)
+        for (Reports::iterator it = root.begin(); it != root.end(); ++it)
             if ( it->get<T_QualName>() == tag ) {
                 return true;
             }
@@ -631,7 +635,9 @@ namespace cogimon
         // Uses the port DS itself to make the report.
         assert( report.empty() );
         // For the timestamp, we need to add a new property object:
-        report.add( timestamp.getTypeInfo()->buildProperty( timestamp.getName(), "", timestamp.getDataSource() ) );
+        // report.add( timestamp.getTypeInfo()->buildProperty( timestamp.getName(), "", timestamp.getDataSource() ) );
+        //No TimeStamp Information!
+
         DataSource<bool>::shared_ptr checker;
         for(Reports::iterator it = root.begin(); it != root.end(); ++it ) {
             Property<RTT::PropertyBag>* subbag = new Property<RTT::PropertyBag>( it->get<T_QualName>(), "");
@@ -684,7 +690,7 @@ namespace cogimon
             // Step 3: print out the result
             // write out to all marshallers
             for(Marshallers::iterator it=marshallers.begin(); it != marshallers.end(); ++it) {
-                if ( onlyNewData ) {
+                if (onlyNewData) {
                     // Serialize only changed ports:
                     it->second->serialize( *report.begin() ); // TimeStamp.
                     for (Reports::const_iterator i = root.begin();
@@ -694,10 +700,10 @@ namespace cogimon
                             if ( i->get<T_NewData>() )
                                 it->second->serialize( i->get<T_Property>() );
                         }
-                } else {
-                    // pass on all ports to the marshaller
-                    it->second->serialize( report );
-                }
+                }// else {
+                //     // pass on all ports to the marshaller
+                //     it->second->serialize( report );
+                // }
                 it->second->flush();
             }
         } while( !getActivity()->isPeriodic() && !insnapshot.get() && copydata() ); // repeat if necessary. In periodic mode we always only sample once.

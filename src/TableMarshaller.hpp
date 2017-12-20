@@ -42,6 +42,9 @@
 #include <rtt/base/PropertyIntrospection.hpp>
 #include <rtt/marsh/StreamProcessor.hpp>
 #include <rtt/marsh/MarshallInterface.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include <rst-rt/monitoring/CallTraceSample.hpp>
 
 namespace RTT
 {
@@ -77,10 +80,58 @@ namespace RTT
 			{
                 *this->s << msep;
                 Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
-                if ( bag )
+                if (bag) {
                     this->serialize( bag->value() );
-                else {
-                    *this->s << v->getDataSource();
+                } else {
+                    if (!v->getType().compare("rstrt.monitoring.CallTraceSample[]")) {
+                        boost::intrusive_ptr<RTT::base::DataSourceBase> s = v->getDataSource();
+                        if (s) {
+                            RTT::internal::DataSource<int>::shared_ptr size = RTT::internal::DataSource<int>::narrow(s->getMember("size").get());
+                            if (size) {
+                                int msize = size->get();
+                                for (int i = 0; i < msize; i++) {
+                                    std::string indx = boost::lexical_cast<std::string>( i );
+                                    RTT::base::DataSourceBase::shared_ptr item = s->getMember(indx);
+                                    // resized = new CheckSizeDataSource( msize, size, resized );
+                                    if (item) {
+                                        if ( !item->isAssignable() ) {
+                                            // For example: the case for size() and capacity() in SequenceTypeInfo
+                                            log(Warning)<<"memberDecomposition: Item '"<< indx << "' of type "<< s->getTypeName() << " is not changeable."<<endlog();
+                                            continue;
+                                        }
+                                        
+                                        // finally recurse or add it to the target bag:
+                                        base::PropertyBase* newpb = item->getTypeInfo()->buildProperty(indx, "", item);
+
+                                        *this->s << newpb->getDataSource();
+                                        // RTT::internal::DataSource<rstrt::monitoring::CallTraceSample>::shared_ptr connvvv = RTT::internal::DataSource<rstrt::monitoring::CallTraceSample>::narrow(newpb->getDataSource().get());
+                                        // if (connvvv) {
+                                        //     // rstrt::monitoring::CallTraceSample out = connvvv->value();
+                                        //     // iterate over all memebers
+                                        //     // for (auto memName : connvvv->getMemberNames()) {
+                                                
+                                        //     // }
+                                        // }
+                                        // if ( !memberDecomposition( item, recurse_bag->value(), resized) ) {
+                                        //     targetbag.ownProperty( newpb ); // leaf
+                                        // } else {
+                                            delete newpb;
+                                        //     recurse_bag->setName( indx );
+                                        //     // setType() is done by recursive of self.
+                                        //     targetbag.ownProperty( recurse_bag.release() ); //recursed.
+                                        //     recurse_bag.reset( new Property<RTT::PropertyBag>("recurse_bag","") );
+                                        // }
+                                    }
+                                }
+                            }
+
+                            // for(auto i : s->getMemberNames()) {
+                            //     RTT::log(RTT::Error) << "MemberName " << i << RTT::endlog(); // size, capacity
+                            // } 
+                        }
+                    } else {
+                        *this->s << v->getDataSource(); // <<std::endl; // FIRST REMOVE FROM RSTRT
+                    }
                 }
 			}
 
