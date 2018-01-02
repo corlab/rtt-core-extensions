@@ -73,44 +73,46 @@ namespace RTT
 
 			virtual void serialize(base::PropertyBase* v)
 			{
-                Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
-                if ( bag )
-                    this->serialize( *bag );
-                else
-                    store( v->getName() );
+                *s << "{root:[";
+                // Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
+                // if ( bag )
+                //     this->serialize( *bag );
+                // else
+                //     store( v->getName() );
 			}
 
 
             virtual void serialize(const PropertyBag &v)
 			{
-                // A Bag has no name
-                //
+                *s << "{root:[";
+                // // A Bag has no name
+                // //
 
-                //*s <<"| Data Set <"<<v.getType()<<"> containing :"<< std::endl <<"| ";
-                //++line;
-                /*
-                for (
-                    PropertyBag::const_iterator i = v.getProperties().begin();
-                    i != v.getProperties().end();
-                    i++ )
-                {
-                    // *s << (*i)->getName() <<" | ";
-                    store( (*i)->getName() );
-                }
-                */
-                ++level;
-                //++line;
-                //*s << " |"<<std::endl;
-                for (
-                    PropertyBag::const_iterator i = v.getProperties().begin();
-                    i != v.getProperties().end();
-                    i++ )
-                {
+                // //*s <<"| Data Set <"<<v.getType()<<"> containing :"<< std::endl <<"| ";
+                // //++line;
+                // /*
+                // for (
+                //     PropertyBag::const_iterator i = v.getProperties().begin();
+                //     i != v.getProperties().end();
+                //     i++ )
+                // {
+                //     // *s << (*i)->getName() <<" | ";
+                //     store( (*i)->getName() );
+                // }
+                // */
+                // ++level;
+                // //++line;
+                // //*s << " |"<<std::endl;
+                // for (
+                //     PropertyBag::const_iterator i = v.getProperties().begin();
+                //     i != v.getProperties().end();
+                //     i++ )
+                // {
 
-                    this->serialize(*i);
-                }
-                --level;
-                //*s << " |"<<std::endl;
+                //     this->serialize(*i);
+                // }
+                // --level;
+                // //*s << " |"<<std::endl;
 			}
 
             /**
@@ -130,56 +132,57 @@ namespace RTT
 
             virtual void serialize(const Property<PropertyBag> &v)
 			{
-                if ( line == int(header.size() ) )
-                    header.push_back(std::string(""));
-                /**
-                 * Serializing a propery<bag> : pad the line below with spaces.
-                 */
-                if ( int(header[line-1].length()) - int(header[line].length()) > 0 )
-                {
-                    // add separator
-                    header[line] += std::string(" | ");
-                    // pad further if necessary.
-                    if ( int(header[line-1].length()) - int(header[line].length()) > 0 )
-                        header[line] += std::string( header[line-1].length() - header[line].length() ,' ');
-                }
+                *s << "{root:[";
+                // if ( line == int(header.size() ) )
+                //     header.push_back(std::string(""));
+                // /**
+                //  * Serializing a propery<bag> : pad the line below with spaces.
+                //  */
+                // if ( int(header[line-1].length()) - int(header[line].length()) > 0 )
+                // {
+                //     // add separator
+                //     header[line] += std::string(" | ");
+                //     // pad further if necessary.
+                //     if ( int(header[line-1].length()) - int(header[line].length()) > 0 )
+                //         header[line] += std::string( header[line-1].length() - header[line].length() ,' ');
+                // }
 
-                /**
-                 * Print our name
-                 */
+                // /**
+                //  * Print our name
+                //  */
 
-                std::string name = v.getName();
-                if ( v.value().getType() != "type_less")
-                    name+= std::string(" <") + v.value().getType() + std::string(">");
-                store( name ) ;
+                // std::string name = v.getName();
+                // if ( v.value().getType() != "type_less")
+                //     name+= std::string(" <") + v.value().getType() + std::string(">");
+                // store( name ) ;
 
-                /**
-                 * Serialize all properties on the line below.
-                 */
-                line++;
-                if ( v.value().getProperties().empty() )
-                    store( std::string("<empty>") );
-                else
-                    serialize(v.value());
-                line--;
+                // /**
+                //  * Serialize all properties on the line below.
+                //  */
+                // line++;
+                // if ( v.value().getProperties().empty() )
+                //     store( std::string("<empty>") );
+                // else
+                //     serialize(v.value());
+                // line--;
 
-                /**
-                 * Pad this line with spaces
-                 */
-                if ( int(header[line].length()) - int(header[line -1].length()) > 0)
-                    header[line-1] += std::string( header[line].length() - header[line-1].length(), ' ');
+                // /**
+                //  * Pad this line with spaces
+                //  */
+                // if ( int(header[line].length()) - int(header[line -1].length()) > 0)
+                //     header[line-1] += std::string( header[line].length() - header[line-1].length(), ' ');
             }
 
             virtual void flush()
             {
-                for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
-                    if ( !it->empty())
-                        *this->s << *it <<std::string(" |")<<std::endl;
-                // TODO : buffer for formatting and flush here.
-                level = 0;
-                line  = 1;
-                header.clear();
-                header.push_back(std::string(""));
+                // for (std::vector<std::string>::iterator it = header.begin(); it != header.end(); ++it)
+                //     if ( !it->empty())
+                //         *this->s << *it <<std::string(" |")<<std::endl;
+                // // TODO : buffer for formatting and flush here.
+                // level = 0;
+                // line  = 1;
+                // header.clear();
+                // header.push_back(std::string(""));
             }
 	};
 }
