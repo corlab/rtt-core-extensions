@@ -691,8 +691,8 @@ namespace cogimon
             // write out to all marshallers
             for(Marshallers::iterator it=marshallers.begin(); it != marshallers.end(); ++it) {
                 if (onlyNewData) {
-                    // Serialize only changed ports:
-                    it->second->serialize( *report.begin() ); // TimeStamp.
+                    // // Serialize only changed ports:
+                    // it->second->serialize( *report.begin() ); // TimeStamp.
                     for (Reports::const_iterator i = root.begin();
                          i != root.end();
                          i++ )
