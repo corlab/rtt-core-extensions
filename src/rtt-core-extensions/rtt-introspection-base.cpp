@@ -63,7 +63,8 @@ bool RTTIntrospectionBase::configureHook() {
 	cts_stop = rstrt::monitoring::CallTraceSample("stopHook()", this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	cts_cleanup = rstrt::monitoring::CallTraceSample("cleanupHook()", this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 
-	cts_port = rstrt::monitoring::CallTraceSample("port_access", this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
+	cts_port = rstrt::monitoring::CallTraceSample("port_access##################################################################################",
+													this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	//prepare introspection output ports
     out_call_trace_sample_port.setName("out_call_trace_sample_port");
     out_call_trace_sample_port.doc("Output port for call trace samples");

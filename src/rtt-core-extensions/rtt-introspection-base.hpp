@@ -72,6 +72,7 @@ public:
 	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true) {
 		RTT::FlowStatus f = input_port.read(source, copy_old_data);
 		if (useCallTraceIntrospection) {
+			cts_port.call_name = input_port.getName();
 			cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 			if (f == RTT::NoData) {
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
@@ -97,6 +98,7 @@ public:
 	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true) {
 		RTT::FlowStatus f = input_port.read(sample, copy_old_data);
 		if (useCallTraceIntrospection) {
+			cts_port.call_name = input_port.getName();
 			cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 			if (f == RTT::NoData) {
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
@@ -122,6 +124,7 @@ public:
 	void writePort(RTT::OutputPort<T>& output_port, const T& sample) {
 		output_port.write(sample);
 		if (useCallTraceIntrospection) {
+			cts_port.call_name = output_port.getName();
 			cts_port.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
 			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
 			// out_call_trace_sample_port.write(cts_port);
