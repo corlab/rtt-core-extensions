@@ -74,28 +74,30 @@ namespace RTT
 
 			virtual void serialize(base::PropertyBase* v)
 			{
-                Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
-                if ( bag )
-                    this->serialize( *bag );
-                else
-                    store( v->getName() );
+                *this->s << "{root:[";
+                // Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
+                // if ( bag )
+                //     this->serialize( *bag );
+                // else
+                //     store( v->getName() );
 			}
 
 
             virtual void serialize(const PropertyBag &v)
 			{
-                // start with a comment sign.
-                if (did_comment == false )
-                    *this->s << "";
-                did_comment = true;
+                *this->s << "{root:[";
+                // // start with a comment sign.
+                // if (did_comment == false )
+                //     *this->s << "";
+                // did_comment = true;
 
-                for (
-                    PropertyBag::const_iterator i = v.getProperties().begin();
-                    i != v.getProperties().end();
-                    i++ )
-                {
-                    this->serialize(*i);
-                }
+                // for (
+                //     PropertyBag::const_iterator i = v.getProperties().begin();
+                //     i != v.getProperties().end();
+                //     i++ )
+                // {
+                //     this->serialize(*i);
+                // }
 			}
 
             /**
@@ -119,29 +121,29 @@ namespace RTT
 
             virtual void serialize(const Property<PropertyBag> &v)
 			{
-                if ( v.rvalue().empty() )
-                    store( v.getName() + "[0]" );
-                else {
-                    std::string oldpref = prefix;
-                    if ( prefix.empty() )
-                        prefix = v.getName();
-                    else
-                        prefix += '.' + v.getName();
+                *this->s << "{root:[";
+                // if ( v.rvalue().empty() )
+                //     store( v.getName() + "[0]" );
+                // else {
+                //     std::string oldpref = prefix;
+                //     if ( prefix.empty() )
+                //         prefix = v.getName();
+                //     else
+                //         prefix += '.' + v.getName();
 
-                    serialize(v.rvalue());
+                //     serialize(v.rvalue());
 
-                    prefix = oldpref;
-                    nameless_counter = 0;
-                }
+                //     prefix = oldpref;
+                //     nameless_counter = 0;
+                // }
             }
 
             virtual void flush()
             {
-                did_comment = false;
-                nameless_counter = 0;
-                *this->s << std::endl;
+                // did_comment = false;
+                // nameless_counter = 0;
+                // *this->s << std::endl;
                 this->s->flush();
-
             }
 	};
 }
