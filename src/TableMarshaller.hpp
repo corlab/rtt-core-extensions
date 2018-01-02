@@ -60,6 +60,7 @@ namespace RTT
         : public marsh::MarshallInterface, public marsh::StreamProcessor<o_stream>
     {
         std::string msep;
+        bool first_time;
         public:
         typedef o_stream output_stream;
         typedef o_stream OutputStream;
@@ -70,15 +71,14 @@ namespace RTT
          * @param sep The separater to place between each column and at
          * the end of the line.
          */
-        TableMarshaller(output_stream &os, std::string sep=" ") :
-            marsh::StreamProcessor<o_stream>(os), msep(sep)
-        {}
+        TableMarshaller(output_stream &os, std::string sep=",") :
+            marsh::StreamProcessor<o_stream>(os), msep(sep) {
+                first_time = true;
+            }
 
             virtual ~TableMarshaller() {}
 
-			virtual void serialize(base::PropertyBase* v)
-			{
-                *this->s << msep;
+			virtual void serialize(base::PropertyBase* v) {
                 Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
                 if (bag) {
                     this->serialize( bag->value() );
@@ -103,53 +103,31 @@ namespace RTT
                                         // finally recurse or add it to the target bag:
                                         base::PropertyBase* newpb = item->getTypeInfo()->buildProperty(indx, "", item);
 
-                                        *this->s << newpb->getDataSource();
-                                        // RTT::internal::DataSource<rstrt::monitoring::CallTraceSample>::shared_ptr connvvv = RTT::internal::DataSource<rstrt::monitoring::CallTraceSample>::narrow(newpb->getDataSource().get());
-                                        // if (connvvv) {
-                                        //     // rstrt::monitoring::CallTraceSample out = connvvv->value();
-                                        //     // iterate over all memebers
-                                        //     // for (auto memName : connvvv->getMemberNames()) {
-                                                
-                                        //     // }
-                                        // }
-                                        // if ( !memberDecomposition( item, recurse_bag->value(), resized) ) {
-                                        //     targetbag.ownProperty( newpb ); // leaf
-                                        // } else {
-                                            delete newpb;
-                                        //     recurse_bag->setName( indx );
-                                        //     // setType() is done by recursive of self.
-                                        //     targetbag.ownProperty( recurse_bag.release() ); //recursed.
-                                        //     recurse_bag.reset( new Property<RTT::PropertyBag>("recurse_bag","") );
-                                        // }
+                                        if (first_time) {
+                                            *this->s << newpb->getDataSource();
+                                            first_time = false;
+                                        } else {
+                                            *this->s << msep << newpb->getDataSource();
+                                        }
+                                        delete newpb;
                                     }
                                 }
                             }
-
-                            // for(auto i : s->getMemberNames()) {
-                            //     RTT::log(RTT::Error) << "MemberName " << i << RTT::endlog(); // size, capacity
-                            // } 
                         }
                     } else {
-                        *this->s << v->getDataSource(); // <<std::endl; // FIRST REMOVE FROM RSTRT
+                        *this->s << v->getDataSource();// NEVER DONE!
                     }
                 }
 			}
 
-            virtual void serialize(const PropertyBag &v)
-			{
-                for (
-                    PropertyBag::const_iterator i = v.getProperties().begin();
-                    i != v.getProperties().end();
-                    i++ )
-                {
+            virtual void serialize(const PropertyBag &v) {
+                for (PropertyBag::const_iterator i = v.getProperties().begin(); i != v.getProperties().end(); i++) {
                     this->serialize( *i );
                 }
 			}
 
-            virtual void flush()
-            {
-                // TODO : buffer for formatting and flush here.
-                *this->s << msep <<std::endl;
+            virtual void flush() {
+                // *this->s << std::endl;
             }
 	};
 }
