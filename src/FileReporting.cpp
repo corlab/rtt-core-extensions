@@ -44,6 +44,9 @@ namespace cogimon
         ReportingComponent::stopHook();
 
         this->removeMarshallers();
+
+        mfile << "]}";
+
         if (mfile)
             mfile.close();
     }
