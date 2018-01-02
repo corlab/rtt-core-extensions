@@ -74,7 +74,7 @@ namespace RTT
 
 			virtual void serialize(base::PropertyBase* v)
 			{
-                *this->s << "{root:[";
+                *this->s << "{\"root\":[";
                 // Property<PropertyBag>* bag = dynamic_cast< Property<PropertyBag>* >( v );
                 // if ( bag )
                 //     this->serialize( *bag );
@@ -85,7 +85,7 @@ namespace RTT
 
             virtual void serialize(const PropertyBag &v)
 			{
-                *this->s << "{root:[";
+                *this->s << "{\"root\":[";
                 // // start with a comment sign.
                 // if (did_comment == false )
                 //     *this->s << "";
@@ -121,7 +121,7 @@ namespace RTT
 
             virtual void serialize(const Property<PropertyBag> &v)
 			{
-                *this->s << "{root:[";
+                *this->s << "{\"root\":[";
                 // if ( v.rvalue().empty() )
                 //     store( v.getName() + "[0]" );
                 // else {
