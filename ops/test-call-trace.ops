@@ -12,7 +12,7 @@ setActivityOnCPU("ib",0.1,10,ORO_SCHED_OTHER,2)
 ib.configure()
 
 loadComponent("ib2", "cogimon::RTTIntrospectionBaseTest")
-setActivityOnCPU("ib2",0.1,10,ORO_SCHED_OTHER,3)
+setActivityOnCPU("ib2",0.01,10,ORO_SCHED_OTHER,3)
 ib2.configure()
 
 
