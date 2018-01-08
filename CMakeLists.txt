@@ -99,6 +99,7 @@ orocos_component(${COMPONENTS_LIB_NAME}
                     #src/ReportingComponent.cpp
                     src/FileReporting.cpp
                     src/rtt-introspection-base-test.cpp
+                    src/IntrospectionReporter.cpp
 )
 set_property(TARGET ${COMPONENTS_LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
 

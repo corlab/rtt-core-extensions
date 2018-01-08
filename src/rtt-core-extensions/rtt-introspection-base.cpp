@@ -1,6 +1,6 @@
 /* ============================================================
  *
- * This file is a part of RST-RT (CogIMon) project
+ * This file is a part of CoSiMA (CogIMon) project
  *
  * Copyright (C) 2017 by Dennis Leroy Wigand <dwigand at cor-lab dot uni-bielefeld dot de>
  *
@@ -39,14 +39,20 @@ using namespace Eigen;
 
 RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContext(name),
 																	  useCallTraceIntrospection(true),
-																	  call_trace_storage_size(8),
+																	  usePortTraceIntrospection(true),
+																	  call_trace_storage_size(200),
 																	  cts_send_latest_after(UINT_LEAST64_MAX),
 																	  cts_last_send(0),
-																	  cts_send_pro_hook(true) {
+																	  cts_send_pro_hook(true),
+																	  wmect(0) {
 	this->provides("introspection")->addProperty("useCallTraceIntrospection", useCallTraceIntrospection).doc("Enable/Disable the introspection output.");
-	this->provides("introspection")->addProperty("cts_send_latest_after", cts_send_latest_after).doc("Amount of time that can maximally pass before sending the samples.");
+	this->provides("introspection")->addProperty("usePortTraceIntrospection", usePortTraceIntrospection).doc("Enable/Disable the port introspection output.");
+	// this->provides("introspection")->addProperty("cts_send_latest_after", cts_send_latest_after).doc("Amount of time that can maximally pass before sending the samples.");
+	this->provides("introspection")->addProperty("call_trace_storage_size", call_trace_storage_size).doc("Storage capacity.");
 	this->provides("introspection")->addOperation("setCallTraceStorageSize", &RTTIntrospectionBase::setCallTraceStorageSize, this).doc("Set the size of the introspection output storage.");
+	
 	time_service = RTT::os::TimeService::Instance();
+	wmectI = 0;
 }
 
 bool RTTIntrospectionBase::configureHook() {
@@ -63,7 +69,7 @@ bool RTTIntrospectionBase::configureHook() {
 	cts_stop = rstrt::monitoring::CallTraceSample("stopHook()", this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	cts_cleanup = rstrt::monitoring::CallTraceSample("cleanupHook()", this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 
-	cts_port = rstrt::monitoring::CallTraceSample("port_access##################################################################################",
+	cts_port = rstrt::monitoring::CallTraceSample("port_access######################################",
 													this->getName(), 0.0, rstrt::monitoring::CallTraceSample::CALL_UNIVERSAL);
 	//prepare introspection output ports
     out_call_trace_sample_port.setName("out_call_trace_sample_port");
@@ -73,6 +79,7 @@ bool RTTIntrospectionBase::configureHook() {
 
 	call_trace_storage.resize(call_trace_storage_size);
 	call_trace_storage.reserve(call_trace_storage_size);
+
 	out_call_trace_sample_vec_port.setName("out_call_trace_sample_vec_port");
     out_call_trace_sample_vec_port.doc("Output port for call trace samples vector");
     out_call_trace_sample_vec_port.setDataSample(call_trace_storage);
@@ -87,27 +94,39 @@ bool RTTIntrospectionBase::configureHook() {
 
 void RTTIntrospectionBase::updateHook() {
 	if (useCallTraceIntrospection) {
-		// start intro
-		cts_update.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		cts_update.call_time = time_service->getNSecs();
 		cts_update.call_type = rstrt::monitoring::CallTraceSample::CALL_START_WITH_DURATION;
-		// out_call_trace_sample_port.write(cts_update);
 
 		// launch internal updateHook
 		updateHookInternal();
-		
-		// end intro
-		// cts_update.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
-		cts_update.call_duration = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		// out_call_trace_sample_port.write(cts_update);
 
-		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			// publish if the time limit has been passed or if the storage is full.
+		cts_update.call_duration = time_service->getNSecs();
+		uint_least64_t wmect_tmp = cts_update.call_duration - cts_update.call_time;
+		if (wmect_tmp > wmect) {
+			wmect = wmect_tmp;
+    		// RTT::log(RTT::Error) << "1[" << this->getName() << "] wmect: " << wmect << "ns, " << wmect * 1E-6 << "ms" << RTT::endlog();
+		}
+
+		// if (((cts_update.call_duration - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		// uint_least64_t ss = time_service->getNSecs();
+
+		// bool done = false;
+		if (call_trace_storage.size() >= call_trace_storage_size) {
+			// done = true;
+			// publish if the storage is full.
 			out_call_trace_sample_vec_port.write(call_trace_storage);
-			cts_last_send = tmp_send_time;
+			// cts_last_send = cts_update.call_duration;
 			call_trace_storage.clear();
 		}
 		call_trace_storage.push_back(cts_update);
+		
+		// uint_least64_t ee = time_service->getNSecs();
+		// uint_least64_t diff = ee - ss;
+		// if (diff > wmectI) {
+		// 	wmectI = diff;
+		// 	RTT::log(RTT::Error) << "2[" << this->getName() << "] wmect: " << wmectI << "ns, " << wmectI * 1E-6 << "ms: done " << done << RTT::endlog();
+		// }
+
 	} else {
 		updateHookInternal();
 	}
@@ -117,7 +136,7 @@ bool RTTIntrospectionBase::startHook() {
 	bool startRet = false;
 	if (useCallTraceIntrospection) {
 		// start intro
-		cts_start.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		cts_start.call_time = time_service->getNSecs();
 		cts_start.call_type = rstrt::monitoring::CallTraceSample::CALL_START_WITH_DURATION;
 		// out_call_trace_sample_port.write(cts_start);
 
@@ -126,14 +145,13 @@ bool RTTIntrospectionBase::startHook() {
 
 		// end intro
 		// cts_start.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
-		cts_start.call_duration = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
+		cts_start.call_duration = time_service->getNSecs();
 		// out_call_trace_sample_port.write(cts_start);
-
-		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		// if (((cts_start.call_duration - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
+		if (call_trace_storage.size() >= call_trace_storage_size) {
 			// publish if the time limit has been passed or if the storage is full.
 			out_call_trace_sample_vec_port.write(call_trace_storage);
-			cts_last_send = tmp_send_time;
+			// cts_last_send = cts_start.call_duration;
 			call_trace_storage.clear();
 		}
 		call_trace_storage.push_back(cts_start);
@@ -145,27 +163,33 @@ bool RTTIntrospectionBase::startHook() {
 
 void RTTIntrospectionBase::stopHook() {
 	if (useCallTraceIntrospection) {
-		// start intro
-		cts_stop.call_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		cts_stop.call_type = rstrt::monitoring::CallTraceSample::CALL_START_WITH_DURATION;
-		// out_call_trace_sample_port.write(cts_stop);
+		// // start intro
+		// cts_stop.call_time = time_service->getNSecs();
+		// cts_stop.call_type = rstrt::monitoring::CallTraceSample::CALL_START_WITH_DURATION;
+		// // out_call_trace_sample_port.write(cts_stop);
 
 		// launch internal stopHook
 		stopHookInternal();
 
-		// end intro
-		// cts_stop.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
-		cts_stop.call_duration = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		// out_call_trace_sample_port.write(cts_stop);
+		// // end intro
+		// // cts_stop.call_type = rstrt::monitoring::CallTraceSample::CALL_END;
+		// cts_stop.call_duration = time_service->getNSecs();
+		
+		// // out_call_trace_sample_port.write(cts_stop);
+		// if (call_trace_storage.size() >= call_trace_storage_size) {
+		// 	out_call_trace_sample_vec_port.write(call_trace_storage);
+		// 	call_trace_storage.clear();
+		// 	call_trace_storage.push_back(cts_stop);
+		// 	// might be too fast!!!
+		// 	out_call_trace_sample_vec_port.write(call_trace_storage);
+		// } else {
+		// 	call_trace_storage.push_back(cts_stop);
+		// 	out_call_trace_sample_vec_port.write(call_trace_storage);
+		// }
+		// cts_last_send = cts_stop.call_duration;
+		// call_trace_storage.clear();
 
-		RTT::os::TimeService::nsecs tmp_send_time = RTT::os::TimeService::ticks2nsecs(time_service->getTicks());
-		if (((tmp_send_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			// publish if the time limit has been passed or if the storage is full.
-			out_call_trace_sample_vec_port.write(call_trace_storage);
-			cts_last_send = tmp_send_time;
-			call_trace_storage.clear();
-		}
-		call_trace_storage.push_back(cts_stop);
+		RTT::log(RTT::Error) << "END [" << this->getName() << "] WMECT: " << wmect  << "ns (" << wmect * 1E-6 << "ms)" << RTT::endlog();
 	} else {
 		stopHookInternal();
 	}
@@ -180,6 +204,10 @@ void RTTIntrospectionBase::setCallTraceStorageSize(const int size) {
 	call_trace_storage_size = size;
 	call_trace_storage.clear();
 	call_trace_storage.reserve(call_trace_storage_size);
+}
+
+uint_least64_t RTTIntrospectionBase::getWMECT() {
+	return wmect;
 }
 
 //ORO_CREATE_COMPONENT_LIBRARY()
