@@ -54,7 +54,7 @@ namespace cosima
                                                                     in_current_flow(RTT::NoData),
                                                                     storage_size(500000),
                                                                     report_policy(ConnPolicy::data(ConnPolicy::LOCK_FREE,true,false)) {
-        ctsamples_storage.resize(storage_size);
+        ctsamples_storage.reserve(storage_size);
     }
 
     bool IntrospectionReporter::configureHook() {
