@@ -38,8 +38,8 @@ using namespace RTT::os;
 using namespace Eigen;
 
 RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContext(name),
-																	  useCallTraceIntrospection(true),
-																	  usePortTraceIntrospection(true),
+																	  useCallTraceIntrospection(false),
+																	  usePortTraceIntrospection(false),
 																	  call_trace_storage_size(200),
 																	  cts_send_latest_after(UINT_LEAST64_MAX),
 																	  cts_last_send(0),
@@ -208,6 +208,21 @@ void RTTIntrospectionBase::setCallTraceStorageSize(const int size) {
 
 uint_least64_t RTTIntrospectionBase::getWMECT() {
 	return wmect;
+}
+
+void RTTIntrospectionBase::setWMECT(const uint_least64_t wmect) {
+	this->wmect = wmect;
+}
+
+void RTTIntrospectionBase::processCTS(rstrt::monitoring::CallTraceSample& cts) {
+	if (call_trace_storage.size() >= call_trace_storage_size) {
+		// done = true;
+		// publish if the storage is full.
+		out_call_trace_sample_vec_port.write(call_trace_storage);
+		// cts_last_send = cts_update.call_duration;
+		call_trace_storage.clear();
+	}
+	call_trace_storage.push_back(cts);
 }
 
 //ORO_CREATE_COMPONENT_LIBRARY()

@@ -212,8 +212,13 @@ public:
 	}
 
 	uint_least64_t getWMECT();
+	void setWMECT(const uint_least64_t wmect);
 
-protected:
+	RTT::os::TimeService* time_service;
+
+	void processCTS(rstrt::monitoring::CallTraceSample& cts);
+
+//protected:
 	bool useCallTraceIntrospection;
 	bool usePortTraceIntrospection;
 
@@ -230,7 +235,6 @@ private:
 
 	rstrt::monitoring::CallTraceSample cts_port;
 
-	RTT::os::TimeService* time_service;
 	uint_least64_t cts_send_latest_after;
 	uint_least64_t cts_last_send;
 
