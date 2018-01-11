@@ -28,14 +28,14 @@ if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
 
-project(rtt-core-extensions VERSION 0.1 LANGUAGES CXX)
+project(rtt-core-extensions VERSION 0.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 string(TOUPPER "${CMAKE_PROJECT_NAME}" PROJECT_NAME_UPPER)
 
 set(${PROJECT_NAME_UPPER}_VERSION_MAJOR 0)
-set(${PROJECT_NAME_UPPER}_VERSION_MINOR 1)
+set(${PROJECT_NAME_UPPER}_VERSION_MINOR 2)
 set(${PROJECT_NAME_UPPER}_VERSION "${${PROJECT_NAME_UPPER}_VERSION_MAJOR}.${${PROJECT_NAME_UPPER}_VERSION_MINOR}")
 
 set(INSTALL_SUFFIX "${${PROJECT_NAME_UPPER}_VERSION}")
@@ -87,7 +87,13 @@ configure_file("${CMAKE_PROJECT_NAME}-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
     @ONLY)
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
+configure_file("${CMAKE_PROJECT_NAME}-config-version.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config-version.cmake"
+    @ONLY)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config-version.cmake"
     DESTINATION "share/${CMAKE_PROJECT_NAME}-${INSTALL_SUFFIX}")
 
 # Build orocos components
@@ -95,8 +101,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
 orocos_component(${COMPONENTS_LIB_NAME}
                     src/rtt-kinematic-chain-ja.cpp
                     src/rtt-kinematic-chain-jt.cpp
-                    #"src/${CMAKE_PROJECT_NAME}/rtt-introspection-base.cpp"
-                    #src/ReportingComponent.cpp
                     src/FileReporting.cpp
                     src/rtt-introspection-base-test.cpp
                     src/IntrospectionReporter.cpp
