@@ -54,6 +54,7 @@ namespace cosima
                                                                     in_current_flow(RTT::NoData),
                                                                     storage_size(500000),
                                                                     report_policy(ConnPolicy::data(ConnPolicy::LOCK_FREE,true,false)) {
+        this->addProperty("storage_size", storage_size);                                        
         ctsamples_storage.reserve(storage_size);
     }
 
@@ -100,7 +101,7 @@ namespace cosima
             in_ctsamples_ports.push_back(ipi);
         }
 
-        RTT::log(RTT::Error) << "PORTS: " << in_ctsamples_ports.size() << RTT::endlog();
+        // RTT::log(RTT::Error) << "PORTS: " << in_ctsamples_ports.size() << RTT::endlog();
         return true;
     }
 
@@ -115,10 +116,10 @@ namespace cosima
 
         for (std::shared_ptr<RTT::InputPort<std::vector<rstrt::monitoring::CallTraceSample> > > port : in_ctsamples_ports) {
             in_current_flow = port->read(in_current_var);
-            RTT::log(RTT::Error) << "READ PORT " << port->getName() << RTT::endlog();
+            // RTT::log(RTT::Error) << "READ PORT " << port->getName() << RTT::endlog();
 
             if (in_current_flow == RTT::NewData) {
-                RTT::log(RTT::Error) << "New Data!" << RTT::endlog();
+                // RTT::log(RTT::Error) << "New Data!" << RTT::endlog();
                 if ((ctsamples_storage.size()+in_current_var.size()) <= ctsamples_storage.capacity()) {
                     ctsamples_storage.insert(ctsamples_storage.end(), in_current_var.begin(), in_current_var.end());
                 } else {
@@ -133,7 +134,7 @@ namespace cosima
     }
     
     void IntrospectionReporter::stopHook() {
-        RTT::log(RTT::Error) << "Logged Samples " << ctsamples_storage.size() << RTT::endlog();
+        RTT::log(RTT::Warning) << "Logged Samples " << ctsamples_storage.size() << RTT::endlog();
 
         ofstream myfile;
         myfile.open ("rtReport.dat");
@@ -150,7 +151,7 @@ namespace cosima
         }
         myfile << "\n]}\n";
         myfile.close();
-        RTT::log(RTT::Error) << "Finished writing to rtReport.dat" << RTT::endlog();
+        RTT::log(RTT::Warning) << "Finished writing to rtReport.dat" << RTT::endlog();
     }
 
     void IntrospectionReporter::cleanupHook() {
