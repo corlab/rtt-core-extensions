@@ -68,6 +68,8 @@ public:
 
 	void setCallTraceStorageSize(const int size);
 
+	void enableAllIntrospection(const bool enable);
+
 	template<class T>
 	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true) {
 		RTT::FlowStatus f = input_port.read(source, copy_old_data);

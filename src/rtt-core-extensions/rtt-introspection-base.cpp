@@ -50,9 +50,15 @@ RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContex
 	// this->provides("introspection")->addProperty("cts_send_latest_after", cts_send_latest_after).doc("Amount of time that can maximally pass before sending the samples.");
 	this->provides("introspection")->addProperty("call_trace_storage_size", call_trace_storage_size).doc("Storage capacity.");
 	this->provides("introspection")->addOperation("setCallTraceStorageSize", &RTTIntrospectionBase::setCallTraceStorageSize, this).doc("Set the size of the introspection output storage.");
+	this->provides("introspection")->addOperation("enableAllIntrospection", &RTTIntrospectionBase::enableAllIntrospection, this).doc("Enables or Disables all introspection capabilities.");
 	
 	time_service = RTT::os::TimeService::Instance();
 	wmectI = 0;
+}
+
+void RTTIntrospectionBase::enableAllIntrospection(const bool enable) {
+	useCallTraceIntrospection = enable;
+	usePortTraceIntrospection = enable;
 }
 
 bool RTTIntrospectionBase::configureHook() {
