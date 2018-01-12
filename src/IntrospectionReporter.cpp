@@ -102,15 +102,23 @@ namespace cosima
         }
 
         // RTT::log(RTT::Error) << "PORTS: " << in_ctsamples_ports.size() << RTT::endlog();
+        // clean all ports
+        for (std::shared_ptr<RTT::InputPort<std::vector<rstrt::monitoring::CallTraceSample> > > port : in_ctsamples_ports) {
+            port->clear();
+        }
         return true;
     }
 
     bool IntrospectionReporter::startHook() {
+        // clean all ports
+        for (std::shared_ptr<RTT::InputPort<std::vector<rstrt::monitoring::CallTraceSample> > > port : in_ctsamples_ports) {
+            port->clear();
+        }
         return true;
     }
 
     void IntrospectionReporter::updateHook() {
-        if (ctsamples_storage.size() == ctsamples_storage.capacity()) {
+        if (!this->isConfigured() || ctsamples_storage.size() == ctsamples_storage.capacity()) {
             return;
         }
 
