@@ -99,6 +99,7 @@ bool RTTIntrospectionBase::configureHook() {
 }
 
 void RTTIntrospectionBase::updateHook() {
+// uint_least64_t overhead_start = time_service->getNSecs();
 	if (useCallTraceIntrospection) {
 		cts_update.call_time = time_service->getNSecs();
 		cts_update.call_type = rstrt::monitoring::CallTraceSample::CALL_START_WITH_DURATION;
@@ -132,7 +133,8 @@ void RTTIntrospectionBase::updateHook() {
 		// 	wmectI = diff;
 		// 	RTT::log(RTT::Error) << "2[" << this->getName() << "] wmect: " << wmectI << "ns, " << wmectI * 1E-6 << "ms: done " << done << RTT::endlog();
 		// }
-
+// uint_least64_t overhead_end = time_service->getNSecs();
+// RTT::log(RTT::Fatal) << " [" << this->getName() << "] " << (overhead_end - overhead_start) << " " << wmect_tmp << RTT::endlog();
 	} else {
 		updateHookInternal();
 	}
