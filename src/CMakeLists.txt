@@ -25,14 +25,16 @@
 
 # Sources
 
-set(SOURCES "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"
-            "${CMAKE_PROJECT_NAME}/rtt-introspection-base.cpp"
-            ReportingComponent.cpp       
+set(SOURCES
+    # "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.cpp"
+    "${CMAKE_PROJECT_NAME}/rtt-introspection-base.cpp"
+    ReportingComponent.cpp       
 )
 
-set(HEADERS "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp"
-            "${CMAKE_PROJECT_NAME}/rtt-introspection-base.hpp"
-            ReportingComponent.hpp
+set(HEADERS
+    # "${CMAKE_PROJECT_NAME}/rtt-jointaware-taskcontext.hpp"
+    "${CMAKE_PROJECT_NAME}/rtt-introspection-base.hpp"
+    ReportingComponent.hpp
 )
 
 # Shared object

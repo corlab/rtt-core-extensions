@@ -42,6 +42,7 @@
 #include <iostream>
 #include <fstream>
 
+ORO_CREATE_COMPONENT_LIBRARY()
 ORO_LIST_COMPONENT_TYPE(cosima::IntrospectionReporter)
 
 namespace cosima
