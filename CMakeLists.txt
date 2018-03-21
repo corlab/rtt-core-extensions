@@ -28,7 +28,7 @@ if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
 
-project(rtt-core-extensions VERSION 0.2 LANGUAGES CXX)
+project(rtt-core-extensions)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
