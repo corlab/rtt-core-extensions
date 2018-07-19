@@ -50,8 +50,6 @@
 #include <thread>
 #include <memory>
 
-#include <rtt/os/TimeService.hpp>
-
 namespace cogimon {
 
 class RTTIntrospectionBaseTest : public RTTIntrospectionBase {

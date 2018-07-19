@@ -53,11 +53,13 @@
 
 #include <rtt/os/TimeService.hpp>
 
-namespace cogimon {
+namespace cogimon
+{
 
-class RTTIntrospectionBase : public RTT::TaskContext {
-public:
-	RTTIntrospectionBase(std::string const& name);
+class RTTIntrospectionBase : public RTT::TaskContext
+{
+  public:
+	RTTIntrospectionBase(std::string const &name);
 	// virtual ~RTTIntrospectionBase() {};
 
 	bool configureHook();
@@ -70,22 +72,34 @@ public:
 
 	void enableAllIntrospection(const bool enable);
 
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true) {
+	void printDebugInformation();
+
+	std::vector<uint_least64_t> executionTimes;
+
+	template <class T>
+	RTT::FlowStatus readPort(RTT::InputPort<T> &input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port.read(source, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port.getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -96,22 +110,30 @@ public:
 		return f;
 	}
 
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>& input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true) {
+	template <class T>
+	RTT::FlowStatus readPort(RTT::InputPort<T> &input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port.read(sample, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port.getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -123,22 +145,30 @@ public:
 	}
 
 	// with pointer
-	template<class T>
-	RTT::FlowStatus readPort(boost::shared_ptr<RTT::InputPort<T> > input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true) {
+	template <class T>
+	RTT::FlowStatus readPort(boost::shared_ptr<RTT::InputPort<T>> input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port->read(source, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port->getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -149,22 +179,30 @@ public:
 		return f;
 	}
 
-	template<class T>
-	RTT::FlowStatus readPort(boost::shared_ptr<RTT::InputPort<T> > input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true) {
+	template <class T>
+	RTT::FlowStatus readPort(boost::shared_ptr<RTT::InputPort<T>> input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port->read(sample, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port->getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -175,22 +213,30 @@ public:
 		return f;
 	}
 
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>* input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true) {
+	template <class T>
+	RTT::FlowStatus readPort(RTT::InputPort<T> *input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port->read(source, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port->getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -201,22 +247,30 @@ public:
 		return f;
 	}
 
-	template<class T>
-	RTT::FlowStatus readPort(RTT::InputPort<T>* input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true) {
+	template <class T>
+	RTT::FlowStatus readPort(RTT::InputPort<T> *input_port, typename RTT::base::ChannelElement<T>::reference_t sample, bool copy_old_data = true)
+	{
 		RTT::FlowStatus f = input_port->read(sample, copy_old_data);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = input_port->getName();
-			if (f == RTT::NoData) {
+			if (f == RTT::NoData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NODATA;
-			} else if (f == RTT::OldData) {
+			}
+			else if (f == RTT::OldData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_OLDDATA;
-			} else if (f == RTT::NewData) {
+			}
+			else if (f == RTT::NewData)
+			{
 				cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_READ_NEWDATA;
 			}
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -227,16 +281,19 @@ public:
 		return f;
 	}
 
-	template<class T>
-	void writePort(RTT::OutputPort<T>& output_port, const T& sample) {
+	template <class T>
+	void writePort(RTT::OutputPort<T> &output_port, const T &sample)
+	{
 		output_port.write(sample);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = output_port.getName();
 			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -246,16 +303,19 @@ public:
 		}
 	}
 
-	template<class T>
-	void writePort(boost::shared_ptr<RTT::OutputPort<T> > output_port, const T& sample) {
+	template <class T>
+	void writePort(boost::shared_ptr<RTT::OutputPort<T>> output_port, const T &sample)
+	{
 		output_port->write(sample);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = output_port->getName();
 			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -265,16 +325,19 @@ public:
 		}
 	}
 
-	template<class T>
-	void writePort(RTT::OutputPort<T>* output_port, const T& sample) {
+	template <class T>
+	void writePort(RTT::OutputPort<T> *output_port, const T &sample)
+	{
 		output_port->write(sample);
-		if (useCallTraceIntrospection && usePortTraceIntrospection) {
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
 			cts_port.call_time = time_service->getNSecs();
 			cts_port.call_name = output_port->getName();
 			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
 			// out_call_trace_sample_port.write(cts_port);
 			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
-			if (call_trace_storage.size() >= call_trace_storage_size) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
 				// publish if the time limit has been passed or if the storage is full.
 				out_call_trace_sample_vec_port.write(call_trace_storage);
 				// cts_last_send = cts_port.call_time;
@@ -287,18 +350,20 @@ public:
 	uint_least64_t getWMECT();
 	void setWMECT(const uint_least64_t wmect);
 
-	RTT::os::TimeService* time_service;
+	RTT::os::TimeService *time_service;
 
-	void processCTS(rstrt::monitoring::CallTraceSample& cts);
+	void processCTS(rstrt::monitoring::CallTraceSample &cts);
 
-//protected:
+	//protected:
 	bool useCallTraceIntrospection;
 	bool usePortTraceIntrospection;
 
-private:
+	void sendAtLeastOncePerXms(const uint_least64_t Xms);
+
+  private:
 	RTT::OutputPort<rstrt::monitoring::CallTraceSample> out_call_trace_sample_port;
 
-	RTT::OutputPort<std::vector<rstrt::monitoring::CallTraceSample> > out_call_trace_sample_vec_port;
+	RTT::OutputPort<std::vector<rstrt::monitoring::CallTraceSample>> out_call_trace_sample_vec_port;
 
 	rstrt::monitoring::CallTraceSample cts_start;
 	rstrt::monitoring::CallTraceSample cts_configure;
@@ -310,6 +375,15 @@ private:
 
 	uint_least64_t cts_send_latest_after;
 	uint_least64_t cts_last_send;
+
+	/**
+	 * Sending once per (ms) if required.
+	 * Otherwise it may happen that the buffer will never get full before the application is shut down and we do not get any data.
+	 * We also cannot wait until a component is stopped to send the collected data,
+	 * because we do not know at that time whether or not the collector component is stopped or still running to receive the data samples.
+	*/
+	uint_least64_t send_at_least_once_per_Xms;
+	uint_least64_t last_send;
 
 	virtual bool configureHookInternal() = 0;
 	virtual bool startHookInternal() = 0;
@@ -326,5 +400,5 @@ private:
 	uint_least64_t wmectI;
 };
 
-}
+} // namespace cogimon
 #endif
