@@ -102,7 +102,7 @@ orocos_component(${COMPONENTS_LIB_NAME}
                     # src/rtt-kinematic-chain-ja.cpp
                     # src/rtt-kinematic-chain-jt.cpp
                     src/IntrospectionReporter.cpp
-                    src/FileReporting.cpp
+                    #src/FileReporting.cpp
                     src/rtt-introspection-base-test.cpp
 )
 set_property(TARGET ${COMPONENTS_LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS RTT_COMPONENT)
