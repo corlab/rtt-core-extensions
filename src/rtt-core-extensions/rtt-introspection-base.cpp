@@ -57,7 +57,7 @@ RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContex
 	this->provides("introspection")->addOperation("setCallTraceStorageSize", &RTTIntrospectionBase::setCallTraceStorageSize, this).doc("Set the size of the introspection output storage.");
 	this->provides("introspection")->addOperation("enableAllIntrospection", &RTTIntrospectionBase::enableAllIntrospection, this).doc("Enables or Disables all introspection capabilities.");
 
-	this->provides("introspection")->addOperation("printDebugInformation", &RTTIntrospectionBase::printDebugInformation, this).doc("Prints Debug Information to File (Not Real-Time Safe).");
+	this->provides("introspection")->addOperation("writeDebugInformation", &RTTIntrospectionBase::writeDebugInformation, this).doc("Writes Debug Information to File (Not Real-Time Safe).");
 
 	this->provides("introspection")->addOperation("sendAtLeastOncePerXms", &RTTIntrospectionBase::sendAtLeastOncePerXms, this).doc("Set how often collected samples should be forwarded to the collector, regardless of the amount of collected samples. Parameter experts milliseconds. 0 means that this variable will not be considered at all.");
 
@@ -218,7 +218,7 @@ bool RTTIntrospectionBase::startHook()
 	}
 }
 
-void RTTIntrospectionBase::printDebugInformation()
+void RTTIntrospectionBase::writeDebugInformation()
 {
 	std::ofstream myfile;
 	myfile.open(this->getName() + "-executionTime_" + std::to_string(time_service->getNSecs()) + ".csv");

@@ -72,7 +72,7 @@ class RTTIntrospectionBase : public RTT::TaskContext
 
 	void enableAllIntrospection(const bool enable);
 
-	void printDebugInformation();
+	void writeDebugInformation();
 
 	std::vector<uint_least64_t> executionTimes;
 
