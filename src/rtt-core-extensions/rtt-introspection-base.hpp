@@ -74,7 +74,10 @@ class RTTIntrospectionBase : public RTT::TaskContext
 
 	void writeDebugInformation();
 
-	std::vector<uint_least64_t> executionTimes;
+	void enableAutoWriteExecutionInformation(const bool enable);
+
+	std::vector<uint_least64_t>
+		executionTimes;
 
 	template <class T>
 	RTT::FlowStatus readPort(RTT::InputPort<T> &input_port, RTT::base::DataSourceBase::shared_ptr source, bool copy_old_data = true)
@@ -398,6 +401,9 @@ class RTTIntrospectionBase : public RTT::TaskContext
 	// debug information
 	uint_least64_t wmect;
 	uint_least64_t wmectI;
+
+	// use this to (de)activate writing of execution time information files.
+	bool auto_write_execution_information;
 };
 
 } // namespace cogimon

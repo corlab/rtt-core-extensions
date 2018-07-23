@@ -48,7 +48,8 @@ RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContex
 																	  cts_send_pro_hook(true),
 																	  wmect(0),
 																	  send_at_least_once_per_Xms(0),
-																	  last_send(0)
+																	  last_send(0),
+																	  auto_write_execution_information(false)
 {
 	this->provides("introspection")->addProperty("useCallTraceIntrospection", useCallTraceIntrospection).doc("Enable/Disable the introspection output.");
 	this->provides("introspection")->addProperty("usePortTraceIntrospection", usePortTraceIntrospection).doc("Enable/Disable the port introspection output.");
@@ -61,6 +62,8 @@ RTTIntrospectionBase::RTTIntrospectionBase(const std::string &name) : TaskContex
 
 	this->provides("introspection")->addOperation("sendAtLeastOncePerXms", &RTTIntrospectionBase::sendAtLeastOncePerXms, this).doc("Set how often collected samples should be forwarded to the collector, regardless of the amount of collected samples. Parameter experts milliseconds. 0 means that this variable will not be considered at all.");
 
+	this->provides("introspection")->addOperation("enableAutoWriteExecutionInformation", &RTTIntrospectionBase::enableAutoWriteExecutionInformation, this).doc("Enables or Disables automatic writing of execution time information when a component is stopped.");
+
 	time_service = RTT::os::TimeService::Instance();
 	wmectI = 0;
 
@@ -72,11 +75,17 @@ void RTTIntrospectionBase::enableAllIntrospection(const bool enable)
 {
 	useCallTraceIntrospection = enable;
 	usePortTraceIntrospection = enable;
+	enableAutoWriteExecutionInformation(enable);
 }
 
 void RTTIntrospectionBase::sendAtLeastOncePerXms(const uint_least64_t Xms)
 {
 	send_at_least_once_per_Xms = Xms;
+}
+
+void RTTIntrospectionBase::enableAutoWriteExecutionInformation(const bool enable)
+{
+	auto_write_execution_information = enable;
 }
 
 bool RTTIntrospectionBase::configureHook()
@@ -271,27 +280,10 @@ void RTTIntrospectionBase::stopHook()
 		// }
 		// cts_last_send = cts_stop.call_duration;
 		// call_trace_storage.clear();
-
-		std::ofstream myfile;
-		myfile.open(this->getName() + "-executionTime_" + std::to_string(time_service->getNSecs()) + ".csv");
-
-		bool first = true;
-		for (uint_least64_t cts : executionTimes)
+		if (auto_write_execution_information)
 		{
-			if (first)
-			{
-				first = false;
-				myfile << cts;
-			}
-			else
-			{
-				myfile << ",\n"
-					   << cts;
-			}
+			writeDebugInformation();
 		}
-		myfile.close();
-
-		RTT::log(RTT::Error) << "END [" << this->getName() << "] WMECT: " << wmect << "ns (" << wmect * 1E-6 << "ms)" << RTT::endlog();
 	}
 	else
 	{
