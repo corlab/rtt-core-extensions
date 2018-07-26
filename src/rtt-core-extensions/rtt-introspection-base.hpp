@@ -329,6 +329,28 @@ class RTTIntrospectionBase : public RTT::TaskContext
 	}
 
 	template <class T>
+	void writePort(std::shared_ptr<RTT::OutputPort<T>> output_port, const T &sample)
+	{
+		output_port->write(sample);
+		if (useCallTraceIntrospection && usePortTraceIntrospection)
+		{
+			cts_port.call_time = time_service->getNSecs();
+			cts_port.call_name = output_port->getName();
+			cts_port.call_type = rstrt::monitoring::CallTraceSample::CALL_PORT_WRITE;
+			// out_call_trace_sample_port.write(cts_port);
+			// if (((cts_port.call_time - cts_last_send) > cts_send_latest_after && !call_trace_storage.empty()) || (call_trace_storage.size() >= call_trace_storage_size)) {
+			if (call_trace_storage.size() >= call_trace_storage_size)
+			{
+				// publish if the time limit has been passed or if the storage is full.
+				out_call_trace_sample_vec_port.write(call_trace_storage);
+				// cts_last_send = cts_port.call_time;
+				call_trace_storage.clear();
+			}
+			call_trace_storage.push_back(cts_port);
+		}
+	}
+
+	template <class T>
 	void writePort(RTT::OutputPort<T> *output_port, const T &sample)
 	{
 		output_port->write(sample);
